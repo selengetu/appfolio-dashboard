@@ -4,22 +4,19 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 import os
-import pdfkit
+
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
 # 🔹 1. Define File Paths (Updated for Windows)
-BASE_DIR = r"C:\Users\SelengeTulga\Downloads\Tenant\dashboard"  # ✅ FIXED
+BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
 st.title("📊 Appfolio Dashboards")
 FILES = {
     "Tenant Data": os.path.join(BASE_DIR, "rent_roll-20250317.csv"),
     "Work Orders": os.path.join(BASE_DIR, "work_order-20250317.csv"),
     "Vacancies": os.path.join(BASE_DIR, "unit_vacancy_detail-20250318.csv"),
 }
-def save_pdf():
-    # Convert Streamlit page to PDF
-    pdfkit.from_url("http://localhost:8501", "dashboard.pdf")
-    st.success("✅ Dashboard exported as PDF!")
+
 
 
 # 🔹 2. Load DataFrames
@@ -46,7 +43,6 @@ if dfs:
         st.subheader("🏢 Vacancies")
         st.write(dfs["Vacancies"].head())
 
-st.button("📄 Export Dashboard as PDF", on_click=save_pdf)
 # **🔹 TAB 1: Financial Overview**
 with tab1:
     col1, col2, col3, col4 = st.columns(4)

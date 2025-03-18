@@ -3,11 +3,14 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+
 import os
+from plotly.io import write_image
+from fpdf import FPDF
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
-# 🔹 1. Define File Paths (Updated for Windows)
+
 BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
 st.title("📊 Appfolio Dashboards")
 FILES = {
@@ -15,9 +18,6 @@ FILES = {
     "Work Orders": os.path.join(BASE_DIR, "work_order-20250317.csv"),
     "Vacancies": os.path.join(BASE_DIR, "unit_vacancy_detail-20250318.csv"),
 }
-
-
-
 # 🔹 2. Load DataFrames
 dfs = {}
 for name, path in FILES.items():
@@ -25,7 +25,12 @@ for name, path in FILES.items():
         dfs[name] = pd.read_csv(path)
     else:
         st.warning(f"⚠️ File not found: {path}")
+# Create folder for images
+IMG_DIR = "plotly_images"
+os.makedirs(IMG_DIR, exist_ok=True)
 
+# 🔹 Generate and Save Plotly Charts as Images
+image_paths = []
 # 🔹 3. Display DataFrames in Tabs
 if dfs:
     tab1, tab2, tab3 = st.tabs(["🏠 Tenant Data", "🔧 Work Orders", "🏢 Vacancies"])
@@ -42,7 +47,19 @@ if dfs:
         st.subheader("🏢 Vacancies")
         st.write(dfs["Vacancies"].head())
 
-# **🔹 TAB 1: Financial Overview**
+def create_pdf(image_paths, pdf_filename="business_dashboard.pdf"):
+    pdf = FPDF()
+    for img in image_paths:
+        pdf.add_page()
+        pdf.image(img, x=10, y=10, w=180)  # Resize image to fit
+    pdf.output(pdf_filename)
+    return pdf_filename 
+
+st.sidebar.header("Export Data")
+if st.sidebar.button("📤 Export to PDF"):
+    pdf_file = create_pdf(image_paths)
+    with open(pdf_file, "rb") as f:
+        st.sidebar.download_button("Download PDF", f, file_name="business_dashboard.pdf")
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
     
@@ -90,7 +107,9 @@ with tab1:
                     text_auto=True)
         
         st.plotly_chart(fig, use_container_width=True)
-
+        img_path1 = os.path.join(IMG_DIR, "tenant_status.png")
+        fig.write_image(img_path1)
+        image_paths.append(img_path1)
 
     with col5:
         # Convert "Move-in" to datetime, handling errors

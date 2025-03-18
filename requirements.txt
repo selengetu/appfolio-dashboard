@@ -1,6 +1,5 @@
-plotly
 streamlit
 pandas
 numpy
+plotly
 pdfkit
-os

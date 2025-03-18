@@ -1,6 +1,0 @@
-plotly
-streamlit
-pandas
-numpy
-pdfkit
-os

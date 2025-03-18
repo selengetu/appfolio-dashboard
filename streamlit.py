@@ -56,9 +56,9 @@ with tab1:
     # Calculate occupancy percentage
     occupied = (current_units / all_units) * 100
     
-    dfs["Tenant Data"]["Rent"] = dfs["Tenant Data"]["Rent"].replace("[\$,]", "", regex=True)  # Remove $ and ,
+    dfs["Tenant Data"]["Rent"] = dfs["Tenant Data"]["Rent"].replace("[\,]", "", regex=True)  # Remove $ and ,
     dfs["Tenant Data"]["Rent"] = pd.to_numeric(dfs["Tenant Data"]["Rent"], errors="coerce")  # Convert to number
-    dfs["Tenant Data"]["Market Rent"] = dfs["Tenant Data"]["Market Rent"].replace("[\$,]", "", regex=True)  # Remove $ and ,
+    dfs["Tenant Data"]["Market Rent"] = dfs["Tenant Data"]["Market Rent"].replace("[\,]", "", regex=True)  # Remove $ and ,
     dfs["Tenant Data"]["Market Rent"] = pd.to_numeric(dfs["Tenant Data"]["Market Rent"], errors="coerce")  # Convert to number
 
     # Calculate total rent

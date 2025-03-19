@@ -30,7 +30,7 @@ PASSWORD = os.getenv('APPFOLIO_PASSWORD')
 WORK_ORDER_URL = os.getenv('WORK_ORDER_URL')
 VACANCY_URL = os.getenv('VACANCY_URL')
 
-BASE_DOWNLOAD_FOLDER = r"/Users/selengetulga/Downloads"
+BASE_DOWNLOAD_FOLDER = r"C:\Users\SelengeTulga\Downloads\Tenant\dashboard"
 
 # Define separate folders for each CSV type
 TENANT_FOLDER = os.path.join(BASE_DOWNLOAD_FOLDER, "tenant_data")

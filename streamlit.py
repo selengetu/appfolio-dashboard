@@ -2,14 +2,20 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.io as pio
 import plotly.graph_objects as go
+import json
 
 import os
-from plotly.io import write_image
 from fpdf import FPDF
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
+try:
+    import kaleido  # Required for Plotly image export
+except ImportError:
+    st.warning("Installing required package: kaleido")
+    os.system("pip install kaleido")
 
 BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
 st.title("📊 Appfolio Dashboards")
@@ -57,9 +63,12 @@ def create_pdf(image_paths, pdf_filename="business_dashboard.pdf"):
 
 st.sidebar.header("Export Data")
 if st.sidebar.button("📤 Export to PDF"):
-    pdf_file = create_pdf(image_paths)
-    with open(pdf_file, "rb") as f:
-        st.sidebar.download_button("Download PDF", f, file_name="business_dashboard.pdf")
+    if not image_paths:
+        st.sidebar.error("❌ No images available for export!")
+    else:
+        pdf_file = create_pdf(image_paths)
+        with open(pdf_file, "rb") as f:
+            st.sidebar.download_button("📥 Download PDF", f, file_name="business_dashboard.pdf", mime="application/pdf")
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
     
@@ -100,15 +109,22 @@ with tab1:
         df_filtered = df_filtered.sort_values(by="Late Count", ascending=False)
 
         # **Create Bar Chart**
-        fig = px.bar(df_filtered, x="Tenant", y="Late Count", 
+        fig1 = px.bar(df_filtered, x="Tenant", y="Late Count", 
                     title="📊 Late Payment Frequency by Tenant",
                     labels={"Late Count": "Late Payment Count", "Tenant": "Tenant Name"},
                     color="Late Count",
-                    text_auto=True)
-        
-        st.plotly_chart(fig, use_container_width=True)
+                    text_auto=True,
+                    color_continuous_scale="Blues")
+        fig1.update_layout(
+        height=600, width=1000,  # Bigger figure
+        margin=dict(l=50, r=50, t=50, b=150)  # Adjust margins
+    )
+
+# 🔹 Rotate x-axis labels
+        fig1.update_xaxes(tickangle=-45) 
+        st.plotly_chart(fig1, use_container_width=True)
         img_path1 = os.path.join(IMG_DIR, "tenant_status.png")
-        fig.write_image(img_path1)
+        fig1.write_image(img_path1)
         image_paths.append(img_path1)
 
     with col5:
@@ -126,13 +142,40 @@ with tab1:
         df = df.sort_values("Move-in")
 
         # **Create a Line Chart**
-        fig = px.line(df, x="Move-in", y=["Rent", "Market Rent"], 
-                    title="📈 Rent Trends Over Time",
-                    markers=True, labels={"value": "Amount ($)", "Move-in": "Move-in Date"})
+        fig2 = px.line(df, 
+              x="Move-in", 
+              y=["Rent", "Market Rent"], 
+              title="📈 Rent Trends Over Time",
+              markers=True, 
+              labels={"value": "Amount ($)", "Move-in": "Move-in Date"},
+              line_shape="spline",  # Smooth Curves
+              color_discrete_sequence=["#FF5733", "#33FF57"])  # Custom Colors
+
+        # 🔹 Improve Layout & Style
+        fig2.update_layout(
+            width=1000, height=600,  # Bigger size
+        )
+
+        # 🔹 Customize Axes
+        fig2.update_xaxes(
+            title_text="Move-in Date",
+            showgrid=True,  # Show grid for readability
+            gridcolor="lightgray",
+            tickangle=-45  # Rotate x-axis labels
+        )
+
+        fig2.update_yaxes(
+            title_text="Amount ($)",
+            showgrid=True,
+            gridcolor="lightgray"
+        )
 
         # Display the Line Chart
-        st.plotly_chart(fig, use_container_width=True)
-
+        st.plotly_chart(fig2, use_container_width=True)
+        img_path2 = os.path.join(IMG_DIR, "move-in.png")
+        fig2.write_image(img_path2)
+        image_paths.append(img_path2)
+       
 
     
     col7, col8 = st.columns(2)
@@ -159,14 +202,38 @@ with tab1:
         avg_lease_days_df = filtered_df.groupby("Sqft Group")["Lease Days"].mean().reset_index()
 
         # **Create a Bar Chart (Histogram Style)**
-        fig_bar = px.bar(avg_lease_days_df, x="Sqft Group", y="Lease Days", 
-                        title="📊 Avg Lease Days by Sqft Group",
-                        labels={"Lease Days": "Avg Lease Duration (Days)", "Sqft Group": "Square Footage Range"},
-                        color="Lease Days",
-                        text_auto=True)
+        fig3 = px.bar(avg_lease_days_df, 
+                 x="Sqft Group", 
+                 y="Lease Days", 
+                 title="📊 Avg Lease Days by Sqft Group",
+                 labels={"Lease Days": "Avg Lease Duration (Days)", "Sqft Group": "Square Footage Range"},
+                 color="Lease Days",
+                 text_auto=True,
+                 color_continuous_scale="Viridis")  # Gradient color
+
+        # 🔹 Improve Layout & Style
+        fig3.update_layout(
+            width=1000, height=600,  # Bigger size
+        )
+
+        # 🔹 Customize X-Axis
+        fig3.update_xaxes(
+            title_text="Square Footage Range",
+            tickangle=-45,  # Rotate x-axis labels for better visibility
+            showgrid=True,
+            gridcolor="lightgray"
+        )
+
+        # 🔹 Customize Y-Axis
+        fig3.update_yaxes(
+            title_text="Avg Lease Duration (Days)",
+            gridcolor="lightgray"
+        )
         
-        st.plotly_chart(fig_bar, use_container_width=True)
-        
+        st.plotly_chart(fig3, use_container_width=True)
+        img_path3 = os.path.join(IMG_DIR, "lease_date.png")
+        fig3.write_image(img_path3)
+        image_paths.append(img_path3)
     with col8:
         # Ensure "Status" column exists
         if "Status" in dfs["Tenant Data"].columns:
@@ -174,11 +241,39 @@ with tab1:
             status_counts.columns = ["Status", "Count"]
 
             # **Create Pie Chart**
-            fig = px.pie(status_counts, values="Count", names="Status", 
-                        title="🏠 Tenant Status Distribution", hole=0.4)
+            fig4 = px.pie(status_counts, 
+             values="Count", 
+             names="Status", 
+             title="🏠 Tenant Status Distribution", 
+             hole=0.4,  # Creates a donut-style pie chart
+             color_discrete_sequence=px.colors.qualitative.Set3)  # Custom colors
+
+            # 🔹 Improve Layout & Style
+            fig4.update_layout(
+                width=800, height=600,  # Bigger chart
+            )
+
+            # 🔹 Customize Legend
+            fig4.update_layout(
+                legend=dict(
+                    font=dict(size=14),  # Bigger font for legend
+                    x=1, y=0.9,  # Position legend to the right
+                    xanchor="right"
+                )
+            )
+
+            # 🔹 Show Percentages & Labels
+            fig4.update_traces(
+                textinfo="percent+label",  # Display both labels and percentages
+                pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))],  # Slightly pull out the first slice
+
+            )   
 
             # Display the Pie Chart
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig4, use_container_width=True)
+            img_path4 = os.path.join(IMG_DIR, "status.png")
+            fig4.write_image(img_path4)
+            image_paths.append(img_path4)
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
 
@@ -217,11 +312,40 @@ with tab2:
             status_counts.columns = ["Work Order Type", "Count"]
 
             # **Create Pie Chart**
-            fig = px.pie(status_counts, values="Count", names="Work Order Type", 
-                        title="🏠 Work Order Type Distribution", hole=0.4)
+            fig5 = px.pie(status_counts, 
+             values="Count", 
+             names="Work Order Type", 
+             title="🏠 Work Order Type Distribution", 
+             hole=0.3,  # Donut chart effect
+             color_discrete_sequence=px.colors.sequential.Viridis)  # Custom color scale
+
+            # 🔹 Improve Layout & Style
+            fig5.update_layout(
+                width=800, height=600,  # Bigger size
+
+            )
+
+            # 🔹 Customize Legend
+            fig5.update_layout(
+                legend=dict(
+                    font=dict(size=14),  # Bigger legend font
+                    orientation="h",  # Horizontal legend
+                    x=0.5, y=-0.2,  # Centered below chart
+                    xanchor="center"
+                )
+            )
+
+            # 🔹 Show Percentage & Labels
+            fig5.update_traces(
+                textinfo="percent+label",  # Show % and category
+                pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))],  # Emphasize the first slice
+            )
 
             # Display the Pie Chart
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig5, use_container_width=True)
+            img_path5 = os.path.join(IMG_DIR, "work-order-type.png")
+            fig5.write_image(img_path5)
+            image_paths.append(img_path5)
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
     with col27:
@@ -234,23 +358,58 @@ with tab2:
         # **Sort by Work Order Count in Descending Order & Show Top 20**
         work_order_issue_counts = work_order_issue_counts.sort_values(by="Work Order Issue Count", ascending=True).tail(20)
 
-        # **Create Horizontal Bar Chart**
-        figg = px.bar(work_order_issue_counts, x="Work Order Issue Count", y="Work Order Issue", 
-                    title="📊 Work Order Frequency by Issue)",
-                    labels={"Work Order Issue Count": "Work Order Issue Count", "Work Order Issue": "Work Order Issue"},
-                    color="Work Order Issue Count",
-                    color_continuous_scale="blues",  # Adjust color scale
-                    text_auto=True,
-                    orientation='h')  # Horizontal bars
+        fig6 = px.bar(
+            work_order_issue_counts, 
+            x="Work Order Issue Count", 
+            y="Work Order Issue", 
+            title="📊 Work Order Frequency by Issue",
+            labels={"Work Order Issue Count": "Work Order Issue Count", "Work Order Issue": "Work Order Issue"},
+            color="Work Order Issue Count",
+            color_continuous_scale="Viridis",  # Gradient color
+            text_auto=True,
+            orientation='h'  # Horizontal bars
+        )
 
-        st.plotly_chart(figg, use_container_width=True)
+        # 🔹 Improve Layout & Style
+        fig6.update_layout(
+            width=1100, height=600,  # Bigger size
+            coloraxis_showscale=False,  # Hide the color scale bar
+            margin=dict(t=50, b=50, l=200, r=50)  # Adjust margins to give more space
+        )
+
+        # 🔹 Customize X-Axis
+        fig6.update_xaxes(
+            title_text="Work Order Issue Count",
+            tickangle=0,  # Keep horizontal for clarity
+            showgrid=True,
+            gridcolor="lightgray"
+        )
+
+        # 🔹 Customize Y-Axis
+        fig6.update_yaxes(
+            title_text="Work Order Issue",
+            showgrid=False,  # Remove grid to keep it clean
+            tickmode="array",  # Ensure that each label is spaced out properly
+        )
+        fig6.update_traces(
+            textposition="outside",  # Position text outside the bars
+            textfont=dict(size=12),  # Reduce font size to prevent overlap
+        )
+        # Display the chart
+        st.plotly_chart(fig6, use_container_width=True)
+
+
+        img_path6 = os.path.join(IMG_DIR, "order-issue.png")
+        fig6.write_image(img_path6)
+        image_paths.append(img_path6)
 with tab3:
     col31, col32, col33, col34 = st.columns(4)
 
         # **Filter Vacancy and Work Order Counts**
     rent_ready = dfs["Vacancies"][dfs["Vacancies"]["Rent Ready"] == "Yes"].shape[0]
     urgent_work_orders = dfs["Work Orders"][dfs["Work Orders"]["Priority"] == "Urgent"].shape[0]
-    total_work_orders = dfs["Work Orders"].shape[0]
+    next_move_in = dfs["Vacancies"]["Next Move In"].notnull().sum()
+    
     total_vacancy = dfs["Vacancies"].shape[0]
 
         # **Convert "Days Vacant" to Numeric**
@@ -265,13 +424,11 @@ with tab3:
         # **Display Metric Cards**
     col31.metric(label="🏠 Total Vacancy", value=f"{total_vacancy}")
     col32.metric(label="✅ Rent Ready Units", value=f"{rent_ready}")
-    col33.metric(label="⚠️ Urgent Work Orders", value=f"{urgent_work_orders}")
+    col33.metric(label="🆕 Upcoming Move In", value=f"{next_move_in}")
     col34.metric(label="📉 Avg Days Vacant", value=f"{avg_days_vacant:.1f} days")
 
         # **Create Another Row for More Metrics**
     col36, col37 = st.columns(2)
-
-    
 
     with col36:
         df = dfs["Vacancies"]  # Ensure you're using the correct dataset key
@@ -293,16 +450,48 @@ with tab3:
         move_trends.index = move_trends.index.to_timestamp()  # Convert Period to Timestamp
 
         # **Create Line Chart**
-        fig = px.line(move_trends, 
+       # **Create Improved Line Chart**
+        fig7 = px.line(move_trends, 
                     x=move_trends.index, 
                     y=["Move In", "Move Out"],
                     markers=True,
                     title="📈 Move-In and Move-Out Trends by Month",
                     labels={"value": "Number of Vacancies", "index": "Month"},
-                    line_shape="linear")
+                    line_shape="spline",  # Smooth curves
+                    color_discrete_sequence=["#1f77b4", "#ff7f0e"])  # Custom colors (Blue & Orange)
 
-        # **Display in Streamlit**
-        st.plotly_chart(fig, use_container_width=True)
+        # 🔹 Improve Layout & Style
+        fig7.update_layout(
+            width=1000, height=600,  # Bigger figure size
+            margin=dict(l=50, r=50, t=50, b=100),  # Adjust margins
+            legend=dict(
+                x=0.5, y=-0.2,  # Center legend below the chart
+                orientation="h",
+                xanchor="center",
+                font=dict(size=14)
+            )
+        )
+
+        # 🔹 Customize X-Axis
+        fig7.update_xaxes(
+            title_text="Month",
+            tickangle=-45,  # Rotate x-axis labels
+            showgrid=True,  # Show gridlines
+            gridcolor="lightgray"
+        )
+
+        # 🔹 Customize Y-Axis
+        fig7.update_yaxes(
+            title_text="Number of Vacancies",
+            showgrid=True,
+            gridcolor="lightgray"
+        )
+
+        st.plotly_chart(fig7, use_container_width=True)
+
+        img_path7 = os.path.join(IMG_DIR, "move-in-out.png")
+        fig7.write_image(img_path7)
+        image_paths.append(img_path7)
 
     with col37:
         df1 = dfs["Vacancies"]  # Ensure you're using the correct dataset key
@@ -315,17 +504,44 @@ with tab3:
         df_filtered1 = df1.dropna(subset=["Sqft", "Days Vacant"])
 
         # **Create Scatter Plot**
-        fig = px.scatter(df_filtered1, 
-                        x="Sqft", 
-                        y="Days Vacant",
-                        title="📊 Relationship Between Square Footage and Days Vacant",
-                        labels={"Sqft": "Square Footage", "Days Vacant": "Days Vacant"},
-                        color="Days Vacant",
-                        size="Days Vacant",
-                        hover_data=["Sqft", "Days Vacant"])
+        fig8 = px.scatter(df_filtered1, 
+                 x="Sqft", 
+                 y="Days Vacant",
+                 title="📊 Relationship Between Square Footage and Days Vacant",
+                 labels={"Sqft": "Square Footage", "Days Vacant": "Days Vacant"},
+                 color="Days Vacant",  # Color based on vacancy duration
+                 size="Days Vacant",  # Marker size based on days vacant
+                 hover_data=["Sqft", "Days Vacant"],  # Display additional data on hover
+                 color_continuous_scale="Viridis",  # Gradient color scheme
+                 opacity=0.7,  # Reduce opacity for better visualization
+                 size_max=15)  # Adjust marker size
 
-        # **Display in Streamlit**
-        st.plotly_chart(fig, use_container_width=True)
+        # 🔹 Improve Layout & Style
+        fig8.update_layout(
+            width=1000, height=600,  # Bigger size
+            margin=dict(l=50, r=50, t=50, b=50)  # Adjust margins
+
+        )
+
+        # 🔹 Customize X-Axis
+        fig8.update_xaxes(
+            title_text="Square Footage",
+            showgrid=True,  # Show gridlines
+            gridcolor="lightgray"
+        )
+
+        # 🔹 Customize Y-Axis
+        fig8.update_yaxes(
+            title_text="Days Vacant",
+            showgrid=True,
+            gridcolor="lightgray"
+        )
+
+        st.plotly_chart(fig8, use_container_width=True)
+
+        img_path8 = os.path.join(IMG_DIR, "sqt.png")
+        fig8.write_image(img_path8)
+        image_paths.append(img_path8)
 
     col38, col39 = st.columns(2)
 
@@ -337,9 +553,140 @@ with tab3:
         status_counts.columns = ["Unit Status", "Count"]
 
             # **Create Pie Chart**
-        fig1 = px.pie(status_counts, values="Count", names="Unit Status", 
-                    title="🏠 Unit Status Distribution", hole=0.4)
+        fig9 = px.pie(status_counts, 
+              values="Count", 
+              names="Unit Status", 
+              title="🏠 Unit Status Distribution", 
+              hole=0.4,  # Creates a donut-style pie chart
+              color_discrete_sequence=px.colors.qualitative.Set3)  # Custom colors
 
-            # Display the Pie Chart
-        st.plotly_chart(fig1, use_container_width=True)
+        # 🔹 Improve Layout & Style
+        fig9.update_layout(
+            width=800, height=600,  # Bigger chart
+            margin=dict(l=50, r=50, t=50, b=50)  # Adjust margins
+        )
+
+        # 🔹 Customize Legend
+        fig9.update_layout(
+            legend=dict(
+                font=dict(size=14),  # Bigger font for legend
+                x=1, y=0.9,  # Position legend to the right
+                xanchor="right"
+            )
+        )
+
+        # 🔹 Show Percentages & Labels
+        fig9.update_traces(
+            textinfo="percent+label",  # Display both labels and percentages
+            pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))]  # Slightly pull out the first slice
+
+        )
+
+        st.plotly_chart(fig9, use_container_width=True)
+
+        img_path9 = os.path.join(IMG_DIR, "unit.png")
+        fig9.write_image(img_path9)
+        image_paths.append(img_path9)
+
+    with col39:
+            
+                # Filter the Vacancies dataset to include only rows where "Rent Ready" is "Yes"
+        rent_ready_df = dfs["Vacancies"][dfs["Vacancies"]["Rent Ready"] == "Yes"]
+
+        # Ensure "Available On" and "Next Move In" columns are in datetime format
+        rent_ready_df["Available On"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
+        rent_ready_df["Next Move In"] = pd.to_datetime(rent_ready_df["Next Move In"], errors="coerce")
         
+
+        # Extract month and year from "Available On" and "Next Move In"
+        rent_ready_df["Available On Month"] = rent_ready_df["Available On"].dt.to_period("M")
+        rent_ready_df["Next Move In Month"] = rent_ready_df["Next Move In"].dt.to_period("M")
+
+        # Count the number of available units for each month (Available On)
+        available_on_month_counts = rent_ready_df["Available On Month"].value_counts().sort_index()
+
+        # Count the number of units with a "Next Move In" for each month
+        next_move_in_month_counts = rent_ready_df["Next Move In Month"].value_counts().sort_index()
+
+        # Combine both counts into a DataFrame for easier plotting
+        month_counts_df = pd.DataFrame({
+            "Available On": available_on_month_counts,
+            "Next Move In": next_move_in_month_counts
+        }).fillna(0)  # Fill NaN values with 0
+
+        # Plot the bar chart
+        fig10 = px.bar(
+            month_counts_df,
+            x=month_counts_df.index.astype(str),  # Convert PeriodIndex to string for x-axis labels
+            y=["Available On", "Next Move In"],
+            title="📊 Available On and Next Move In by Month (Rent Ready Units)",
+            labels={"value": "Count of Units", "index": "Month"},
+            barmode="group",  # Display bars for each month side by side
+            text_auto=True,  # Display text inside bars
+            color_discrete_sequence=["#636EFA", "#EF553B"],  # Custom color palette for bars
+        )
+
+        # Update layout for better aesthetics
+        fig10.update_layout(
+            width=1000, height=600,  # Bigger size
+            xaxis_title="Month",
+            yaxis_title="Count of Units",
+            xaxis=dict(
+                tickangle=45,  # Angle the x-axis labels for better readability
+                tickmode="array",  # Ensure that all months are displayed properly
+            ),
+            yaxis=dict(
+                showgrid=True,  # Show gridlines for better readability
+                gridcolor='lightgray',  # Light gridlines for better contrast
+            ),
+            margin=dict(t=50, b=80, l=50, r=50),  # Add space around the plot
+            hovermode="x unified",  # Display hover information for all bars in the same month
+            showlegend=True,  # Show legend for "Available On" and "Next Move In"
+        )
+
+        # Update bar text for better visibility
+        fig10.update_traces(textposition="inside", texttemplate="%{text:.2s}", textfont_size=12)
+
+        # Display the chart
+        st.plotly_chart(fig10, use_container_width=True)
+
+        # Save the chart as an image
+        img_path = os.path.join(IMG_DIR, "available_vs_next_move_in_improved_design.png")
+        fig10.write_image(img_path)
+        image_paths.append(img_path)
+
+
+
+    # Define the metrics dictionary
+    def convert_values(data):
+        return {key: [{"label": item["label"], "value": str(item["value"])} for item in value] for key, value in data.items()}
+
+    # Convert metrics data
+    metrics_data = {
+        "metrics1": [
+            {"label": "Total Unit", "value": int(all_units)},
+            {"label": "Occupancy Rate", "value": f"{occupied:.2f}%"},
+            {"label": "Total Rent Collected %", "value": f"{(total_rent)/(market_total_rent)*100:,.2f}%"},
+            {"label": "Total Move-outs", "value": int(total_move_out)}
+        ],
+        "metrics2": [
+            {"label": "Total Vacancy", "value": int(total_vacancy)},
+            {"label": "Rent Ready Units", "value": int(rent_ready)},
+            {"label": "Upcoming Move In", "value": int(next_move_in)},
+            {"label": "Avg Days Vacant", "value": f"{avg_days_vacant:.1f} days"}
+        ],
+        "metrics3": [
+            {"label": "Total Workorder", "value": int(all_work_order)},
+            {"label": "New work orders", "value": int(new_work_orders)},
+            {"label": "Urgent Work Orders", "value": int(urgent_work_orders)},
+            {"label": "Total Amounts", "value": f"${total_amount}"}
+        ]
+    }
+
+    # Convert to JSON-friendly format
+    metrics_data_fixed = convert_values(metrics_data)
+
+    # Save to JSON file
+    json_file = "metrics.json"
+    with open(json_file, "w") as f:
+        json.dump(metrics_data_fixed, f, indent=4)

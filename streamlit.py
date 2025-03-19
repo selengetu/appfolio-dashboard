@@ -16,7 +16,7 @@ except ImportError:
     st.warning("Installing required package: kaleido")
     os.system("pip install kaleido")
 
-BASE_DIR = 'C:\\Users\\SelengeTulga\\Documents\\GitHub\\appfolio-dashboard\\data'
+BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
 
 st.title("📊 Appfolio Dashboards")
 # Define file prefixes

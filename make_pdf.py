@@ -131,4 +131,4 @@ for i, img in enumerate(image_paths_page3):
 pdf_file = "appfolio_dashboard.pdf"
 pdf.output(pdf_file)
 
-print(f"PDF generated successfully with two pages: {pdf_file}")
+print(f"PDF generated successfully: {pdf_file}")

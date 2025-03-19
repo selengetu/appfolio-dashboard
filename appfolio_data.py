@@ -23,14 +23,14 @@ logging.basicConfig(
 
 
 # Define paths and credentials
-CHROMEDRIVER_PATH = r"C:\Users\SelengeTulga\Documents\chromedriver\chromedriver.exe"
+CHROMEDRIVER_PATH = r"/Users/selengetulga/Downloads/chromedriver-mac-x64/chromedriver"
 LOGIN_URL = os.getenv('APPFOLIO_LOGIN_URL')
 USERNAME = os.getenv('APPFOLIO_USERNAME')
 PASSWORD = os.getenv('APPFOLIO_PASSWORD')
 WORK_ORDER_URL = os.getenv('WORK_ORDER_URL')
 VACANCY_URL = os.getenv('VACANCY_URL')
 
-BASE_DOWNLOAD_FOLDER = r"C:\Users\SelengeTulga\Downloads\Tenant\dashboard"
+BASE_DOWNLOAD_FOLDER = r"/Users/selengetulga/Downloads"
 
 # Define separate folders for each CSV type
 TENANT_FOLDER = os.path.join(BASE_DOWNLOAD_FOLDER, "tenant_data")

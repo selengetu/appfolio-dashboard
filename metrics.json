@@ -2,15 +2,15 @@
     "metrics1": [
         {
             "label": "Total Unit",
-            "value": "372"
+            "value": "370"
         },
         {
             "label": "Occupancy Rate",
-            "value": "83.60%"
+            "value": "83.78%"
         },
         {
             "label": "Total Rent Collected %",
-            "value": "84.67%"
+            "value": "84.24%"
         },
         {
             "label": "Total Move-outs",
@@ -20,33 +20,33 @@
     "metrics2": [
         {
             "label": "Total Vacancy",
-            "value": "59"
+            "value": "60"
         },
         {
             "label": "Rent Ready Units",
-            "value": "24"
+            "value": "25"
         },
         {
             "label": "Upcoming Move In",
-            "value": "5"
+            "value": "7"
         },
         {
             "label": "Avg Days Vacant",
-            "value": "81.2 days"
+            "value": "82.1 days"
         }
     ],
     "metrics3": [
         {
             "label": "Total Workorder",
-            "value": "50"
+            "value": "19"
         },
         {
             "label": "New work orders",
-            "value": "47"
+            "value": "16"
         },
         {
             "label": "Urgent Work Orders",
-            "value": "5"
+            "value": "1"
         },
         {
             "label": "Total Amounts",

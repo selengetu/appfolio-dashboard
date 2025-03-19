@@ -5,9 +5,7 @@ import plotly.express as px
 import plotly.io as pio
 import plotly.graph_objects as go
 import json
-
 import os
-from fpdf import FPDF
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
@@ -53,22 +51,6 @@ if dfs:
         st.subheader("🏢 Vacancies")
         st.write(dfs["Vacancies"].head())
 
-def create_pdf(image_paths, pdf_filename="business_dashboard.pdf"):
-    pdf = FPDF()
-    for img in image_paths:
-        pdf.add_page()
-        pdf.image(img, x=10, y=10, w=180)  # Resize image to fit
-    pdf.output(pdf_filename)
-    return pdf_filename 
-
-st.sidebar.header("Export Data")
-if st.sidebar.button("📤 Export to PDF"):
-    if not image_paths:
-        st.sidebar.error("❌ No images available for export!")
-    else:
-        pdf_file = create_pdf(image_paths)
-        with open(pdf_file, "rb") as f:
-            st.sidebar.download_button("📥 Download PDF", f, file_name="business_dashboard.pdf", mime="application/pdf")
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
     

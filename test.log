@@ -253,3 +253,117 @@
 2025-03-17 13:08:04,471 - INFO -  Waiting for CSV file to be downloaded...
 2025-03-17 13:08:04,472 - INFO -  Latest downloaded file: C:\Users\SelengeTulga\Downloads\Tenant\dashboard\unit_vacancy_detail-20250317 (2).csv
 2025-03-17 13:08:06,621 - INFO - [SUCCESS] The entire process completed successfully.
+2025-03-19 14:51:57,467 - INFO - Started Appfolio data process
+2025-03-19 14:52:10,895 - INFO - Started Appfolio data process
+2025-03-19 14:53:33,902 - INFO - Started Appfolio data process
+2025-03-19 14:53:41,357 - INFO - Started Appfolio data process
+2025-03-19 14:54:42,659 - INFO - [INFO] Opening login page...
+2025-03-19 14:55:06,259 - INFO - [INFO] Entered username
+2025-03-19 14:55:21,550 - INFO - [INFO] Entered password
+2025-03-19 14:55:42,242 - INFO - [INFO] Clicked login button
+2025-03-19 14:55:45,463 - INFO - [INFO] 2-Step Verification detected. Retrieving verification code...
+2025-03-19 14:55:47,765 - INFO - [INFO] Requested verification code.
+2025-03-19 14:55:55,545 - INFO - Entered verification code: 206226
+2025-03-19 14:56:46,244 - INFO - Successfully submitted the verification code!
+2025-03-19 14:56:49,248 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/rent_roll?customize=true and downloading CSV...
+2025-03-19 14:57:29,281 - INFO - Update button clicked successfully.
+2025-03-19 14:57:56,916 - INFO - Export CSV button clicked successfully.
+2025-03-19 14:57:56,916 - INFO - CSV export process initiated.
+2025-03-19 14:58:01,923 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 14:58:01,925 - INFO -  Latest downloaded file: /Users/selengetulga/Documents/Documents - Selenge's MacBook Air/GitHub/appfolio-dashboard/data/rent_roll-20250319.csv
+2025-03-19 14:58:01,926 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/work_order?customize=true and downloading CSV...
+2025-03-19 14:58:34,411 - INFO - Update button clicked successfully.
+2025-03-19 14:58:53,223 - INFO - Export CSV button clicked successfully.
+2025-03-19 14:58:53,224 - INFO - CSV export process initiated.
+2025-03-19 14:58:58,229 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 14:58:58,229 - INFO -  Latest downloaded file: /Users/selengetulga/Documents/Documents - Selenge's MacBook Air/GitHub/appfolio-dashboard/data/rent_roll-20250319.csv
+2025-03-19 14:58:58,229 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/unit_vacancy?customize=true and downloading CSV...
+2025-03-19 15:00:23,168 - INFO - Update button clicked successfully.
+2025-03-19 15:01:06,081 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:01:06,081 - INFO - CSV export process initiated.
+2025-03-19 15:01:11,086 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:01:11,087 - INFO -  Latest downloaded file: /Users/selengetulga/Documents/Documents - Selenge's MacBook Air/GitHub/appfolio-dashboard/data/unit_vacancy_detail-20250319.csv
+2025-03-19 15:01:11,226 - INFO - [SUCCESS] The entire process completed successfully.
+2025-03-19 15:04:48,610 - INFO - Started Appfolio data process
+2025-03-19 15:05:41,150 - INFO - [INFO] Opening login page...
+2025-03-19 15:06:04,048 - INFO - [INFO] Entered username
+2025-03-19 15:06:18,264 - INFO - [INFO] Entered password
+2025-03-19 15:06:31,602 - INFO - [INFO] Clicked login button
+2025-03-19 15:06:34,797 - INFO - [INFO] 2-Step Verification detected. Retrieving verification code...
+2025-03-19 15:06:37,268 - INFO - [INFO] Requested verification code.
+2025-03-19 15:06:42,017 - INFO - Entered verification code: 878984
+2025-03-19 15:07:25,905 - INFO - Successfully submitted the verification code!
+2025-03-19 15:07:28,911 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/rent_roll?customize=true and downloading CSV...
+2025-03-19 15:07:56,555 - INFO - Update button clicked successfully.
+2025-03-19 15:08:20,590 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:08:20,592 - INFO - CSV export process initiated.
+2025-03-19 15:08:25,597 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:08:25,598 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/rent_roll-20250319.csv
+2025-03-19 15:08:25,598 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/work_order?customize=true and downloading CSV...
+2025-03-19 15:08:51,573 - INFO - Update button clicked successfully.
+2025-03-19 15:09:03,933 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:09:03,934 - INFO - CSV export process initiated.
+2025-03-19 15:09:08,939 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:09:08,940 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/work_order-20250319.csv
+2025-03-19 15:09:08,941 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/unit_vacancy?customize=true and downloading CSV...
+2025-03-19 15:09:35,169 - INFO - Update button clicked successfully.
+2025-03-19 15:09:47,892 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:09:47,892 - INFO - CSV export process initiated.
+2025-03-19 15:09:52,893 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:09:52,894 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/unit_vacancy_detail-20250319.csv
+2025-03-19 15:09:53,047 - INFO - [SUCCESS] The entire process completed successfully.
+2025-03-19 15:11:57,359 - INFO - Started Appfolio data process
+2025-03-19 15:12:05,323 - INFO - [INFO] Opening login page...
+2025-03-19 15:12:07,464 - INFO -  An error occurred: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=134.0.6998.117)
+Stacktrace:
+0   chromedriver                        0x0000000103404818 chromedriver + 6105112
+1   chromedriver                        0x00000001033fc41a chromedriver + 6071322
+2   chromedriver                        0x0000000102e97600 chromedriver + 415232
+3   chromedriver                        0x0000000102e6b675 chromedriver + 235125
+4   chromedriver                        0x0000000102f17bde chromedriver + 941022
+5   chromedriver                        0x0000000102f365d5 chromedriver + 1066453
+6   chromedriver                        0x0000000102f0f3e3 chromedriver + 906211
+7   chromedriver                        0x0000000102edb29a chromedriver + 692890
+8   chromedriver                        0x0000000102edc3f1 chromedriver + 697329
+9   chromedriver                        0x00000001033c3d10 chromedriver + 5840144
+10  chromedriver                        0x00000001033c7be4 chromedriver + 5856228
+11  chromedriver                        0x000000010339e946 chromedriver + 5687622
+12  chromedriver                        0x00000001033c85db chromedriver + 5858779
+13  chromedriver                        0x000000010338d034 chromedriver + 5615668
+14  chromedriver                        0x00000001033ea378 chromedriver + 5997432
+15  chromedriver                        0x00000001033ea53f chromedriver + 5997887
+16  chromedriver                        0x00000001033fbff8 chromedriver + 6070264
+17  libsystem_pthread.dylib             0x00007ff80c8ac253 _pthread_start + 99
+18  libsystem_pthread.dylib             0x00007ff80c8a7bef thread_start + 15
+
+2025-03-19 15:12:07,537 - INFO - [ERROR] The process encountered an error.
+2025-03-19 15:13:12,681 - INFO - Started Appfolio data process
+2025-03-19 15:13:19,238 - INFO - [INFO] Opening login page...
+2025-03-19 15:13:55,171 - INFO - [INFO] Entered username
+2025-03-19 15:14:05,155 - INFO - [INFO] Entered password
+2025-03-19 15:14:18,579 - INFO - [INFO] Clicked login button
+2025-03-19 15:14:21,770 - INFO - [INFO] 2-Step Verification detected. Retrieving verification code...
+2025-03-19 15:14:24,280 - INFO - [INFO] Requested verification code.
+2025-03-19 15:14:28,712 - INFO - Entered verification code: 761775
+2025-03-19 15:15:15,937 - INFO - Successfully submitted the verification code!
+2025-03-19 15:15:18,944 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/rent_roll?customize=true and downloading CSV...
+2025-03-19 15:15:52,238 - INFO - Update button clicked successfully.
+2025-03-19 15:16:25,989 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:16:25,991 - INFO - CSV export process initiated.
+2025-03-19 15:16:30,993 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:16:30,995 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/unit_vacancy_detail-20250319.csv
+2025-03-19 15:16:30,995 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/work_order?customize=true and downloading CSV...
+2025-03-19 15:17:24,499 - INFO - Update button clicked successfully.
+2025-03-19 15:17:38,585 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:17:38,586 - INFO - CSV export process initiated.
+2025-03-19 15:17:43,591 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:17:43,592 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/work_order-20250319 (1).csv
+2025-03-19 15:17:43,592 - INFO - Navigating to https://rbmgt.appfolio.com/buffered_reports/unit_vacancy?customize=true and downloading CSV...
+2025-03-19 15:18:39,135 - INFO - Update button clicked successfully.
+2025-03-19 15:19:09,782 - INFO - Export CSV button clicked successfully.
+2025-03-19 15:19:09,783 - INFO - CSV export process initiated.
+2025-03-19 15:19:14,791 - INFO -  Waiting for CSV file to be downloaded...
+2025-03-19 15:19:14,797 - INFO -  Latest downloaded file: /Users/selengetulga/Downloads/unit_vacancy_detail-20250319 (1).csv
+2025-03-19 15:19:15,983 - INFO - [SUCCESS] The entire process completed successfully.

@@ -128,7 +128,7 @@ for i, img in enumerate(image_paths_page3):
     pdf.image(img, x=x_positions[col], y=y_positions[row], w=img_width, h=img_height)
 
 #  Save PDF
-pdf_file = "business_dashboard.pdf"
+pdf_file = "appfolio_dashboard.pdf"
 pdf.output(pdf_file)
 
 print(f"PDF generated successfully with two pages: {pdf_file}")

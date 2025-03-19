@@ -4,22 +4,22 @@ import json
 
 # Define image paths for the first page
 image_paths_page1 = [
-    "plotly_images/move-in.png",
-    "plotly_images/tenant_status.png",   
-    "plotly_images/lease_date.png", 
-    "plotly_images/status.png",  
+    "plotly_pdf_images/move-in.png",
+    "plotly_pdf_images/tenant_status.png",   
+    "plotly_pdf_images/lease_date.png", 
+    "plotly_pdf_images/status.png",  
 ]
 
 # Define image paths for the second page
 image_paths_page2 = [
-    "plotly_images/move-in-out.png",  
-    "plotly_images/sqt.png",  
-    "plotly_images/unit.png",
-    "plotly_images/available_vs_next_move_in_improved_design.png",
+    "plotly_pdf_images/move-in-out.png",  
+    "plotly_pdf_images/sqt.png",  
+    "plotly_pdf_images/unit.png",
+    "plotly_pdf_images/available_vs_next_move_in_improved_design.png",
 ]
 image_paths_page3 = [
-    "plotly_images/work-order-type.png",  
-    "plotly_images/order-issue.png" 
+    "plotly_pdf_images/work-order-type.png",  
+    "plotly_pdf_images/order-issue.png" 
 ]
 
 # Load metrics from the JSON file

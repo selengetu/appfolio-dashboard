@@ -6,15 +6,10 @@ import plotly.graph_objects as go
 import os
 import json
 from datetime import datetime
-
-try:
-    import kaleido  # Required for Plotly image export
-except ImportError:
-    st.warning("Installing required package: kaleido")
-    os.system("pip install kaleido")
+import kaleido
 
 # Define directory paths
-BASE_DIR = os.path.join('/Users/selengetulga/Downloads')  # Use relative path
+BASE_DIR = 'C:\\Users\\SelengeTulga\\Documents\\GitHub\\appfolio-dashboard\\data'
 IMG_DIR = "plotly_pdf_images"
 os.makedirs(IMG_DIR, exist_ok=True)
 

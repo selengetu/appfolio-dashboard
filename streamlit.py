@@ -6,6 +6,7 @@ import plotly.io as pio
 import plotly.graph_objects as go
 import json
 import os
+from datetime import datetime
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
@@ -15,12 +16,46 @@ except ImportError:
     st.warning("Installing required package: kaleido")
     os.system("pip install kaleido")
 
-BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
+BASE_DIR = 'C:\\Users\\SelengeTulga\\Documents\\GitHub\\appfolio-dashboard\\data'
+
 st.title("📊 Appfolio Dashboards")
+# Define file prefixes
+file_prefixes = {
+    "Tenant Data": "rent_roll",
+    "Work Orders": "work_order",
+    "Vacancies": "unit_vacancy_detail"
+}
+
+# Initialize a dictionary to store the latest file for each category
+latest_files = {}
+
+# List all files in the BASE_DIR
+files_in_directory = os.listdir(BASE_DIR)
+
+# Function to extract date from the filename
+def extract_date_from_filename(filename):
+    # Assuming the date format is YYYYMMDD just before the .csv extension
+    date_str = filename.split('-')[-1].split('.')[0]  # Extract the date part
+    return datetime.strptime(date_str, "%Y%m%d")
+
+# Iterate through each category and find the latest file
+for category, prefix in file_prefixes.items():
+    # Filter files based on the prefix
+    relevant_files = [f for f in files_in_directory if f.startswith(prefix) and f.endswith(".csv")]
+    
+    if relevant_files:
+        # Sort the files by the date extracted from their filenames in descending order (latest first)
+        latest_file = max(relevant_files, key=extract_date_from_filename)
+        latest_files[category] = os.path.join(BASE_DIR, latest_file)
+
+# Print the latest files for each category
+for category, file_path in latest_files.items():
+    print(f"Latest {category}: {file_path}")
+    
 FILES = {
-    "Tenant Data": os.path.join(BASE_DIR, "rent_roll-20250317.csv"),
-    "Work Orders": os.path.join(BASE_DIR, "work_order-20250317.csv"),
-    "Vacancies": os.path.join(BASE_DIR, "unit_vacancy_detail-20250318.csv"),
+    "Tenant Data": latest_files.get("Tenant Data"),
+    "Work Orders": latest_files.get("Work Orders"),
+    "Vacancies": latest_files.get("Vacancies"),
 }
 # 🔹 2. Load DataFrames
 dfs = {}
@@ -105,9 +140,6 @@ with tab1:
 # 🔹 Rotate x-axis labels
         fig1.update_xaxes(tickangle=-45) 
         st.plotly_chart(fig1, use_container_width=True)
-        img_path1 = os.path.join(IMG_DIR, "tenant_status.png")
-        fig1.write_image(img_path1)
-        image_paths.append(img_path1)
 
     with col5:
         # Convert "Move-in" to datetime, handling errors
@@ -154,11 +186,6 @@ with tab1:
 
         # Display the Line Chart
         st.plotly_chart(fig2, use_container_width=True)
-        img_path2 = os.path.join(IMG_DIR, "move-in.png")
-        fig2.write_image(img_path2)
-        image_paths.append(img_path2)
-       
-
     
     col7, col8 = st.columns(2)
 
@@ -213,9 +240,7 @@ with tab1:
         )
         
         st.plotly_chart(fig3, use_container_width=True)
-        img_path3 = os.path.join(IMG_DIR, "lease_date.png")
-        fig3.write_image(img_path3)
-        image_paths.append(img_path3)
+
     with col8:
         # Ensure "Status" column exists
         if "Status" in dfs["Tenant Data"].columns:
@@ -253,9 +278,7 @@ with tab1:
 
             # Display the Pie Chart
             st.plotly_chart(fig4, use_container_width=True)
-            img_path4 = os.path.join(IMG_DIR, "status.png")
-            fig4.write_image(img_path4)
-            image_paths.append(img_path4)
+ 
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
 
@@ -325,9 +348,7 @@ with tab2:
 
             # Display the Pie Chart
             st.plotly_chart(fig5, use_container_width=True)
-            img_path5 = os.path.join(IMG_DIR, "work-order-type.png")
-            fig5.write_image(img_path5)
-            image_paths.append(img_path5)
+
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
     with col27:
@@ -380,10 +401,6 @@ with tab2:
         # Display the chart
         st.plotly_chart(fig6, use_container_width=True)
 
-
-        img_path6 = os.path.join(IMG_DIR, "order-issue.png")
-        fig6.write_image(img_path6)
-        image_paths.append(img_path6)
 with tab3:
     col31, col32, col33, col34 = st.columns(4)
 
@@ -471,10 +488,6 @@ with tab3:
 
         st.plotly_chart(fig7, use_container_width=True)
 
-        img_path7 = os.path.join(IMG_DIR, "move-in-out.png")
-        fig7.write_image(img_path7)
-        image_paths.append(img_path7)
-
     with col37:
         df1 = dfs["Vacancies"]  # Ensure you're using the correct dataset key
 
@@ -521,10 +534,6 @@ with tab3:
 
         st.plotly_chart(fig8, use_container_width=True)
 
-        img_path8 = os.path.join(IMG_DIR, "sqt.png")
-        fig8.write_image(img_path8)
-        image_paths.append(img_path8)
-
     col38, col39 = st.columns(2)
 
     # Use col2 and col5 for two separate charts
@@ -561,14 +570,9 @@ with tab3:
         fig9.update_traces(
             textinfo="percent+label",  # Display both labels and percentages
             pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))]  # Slightly pull out the first slice
-
         )
 
         st.plotly_chart(fig9, use_container_width=True)
-
-        img_path9 = os.path.join(IMG_DIR, "unit.png")
-        fig9.write_image(img_path9)
-        image_paths.append(img_path9)
 
     with col39:
             
@@ -631,13 +635,6 @@ with tab3:
 
         # Display the chart
         st.plotly_chart(fig10, use_container_width=True)
-
-        # Save the chart as an image
-        img_path = os.path.join(IMG_DIR, "available_vs_next_move_in_improved_design.png")
-        fig10.write_image(img_path)
-        image_paths.append(img_path)
-
-
 
     # Define the metrics dictionary
     def convert_values(data):

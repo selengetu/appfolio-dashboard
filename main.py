@@ -13,8 +13,8 @@ for script in scripts:
     subprocess.run(script, shell=True)
     time.sleep(2)
 
-# # Optional: Sleep for 3 seconds before running the next command
-# time.sleep(3)
+# Optional: Sleep for 3 seconds before running the next command
+time.sleep(5)
 
-# # Run Streamlit app
-# subprocess.run('streamlit run streamlit.py', shell=True)
+# Run Streamlit app
+subprocess.run('streamlit run streamlit.py', shell=True)

@@ -2,11 +2,11 @@
     "metrics1": [
         {
             "label": "Total Unit",
-            "value": "370"
+            "value": "367"
         },
         {
             "label": "Occupancy Rate",
-            "value": "83.78%"
+            "value": "84.47%"
         },
         {
             "label": "Total Rent Collected %",
@@ -20,7 +20,7 @@
     "metrics2": [
         {
             "label": "Total Vacancy",
-            "value": "60"
+            "value": "57"
         },
         {
             "label": "Rent Ready Units",
@@ -38,7 +38,7 @@
     "metrics3": [
         {
             "label": "Total Workorder",
-            "value": "19"
+            "value": "16"
         },
         {
             "label": "New work orders",
@@ -50,7 +50,7 @@
         },
         {
             "label": "Total Amounts",
-            "value": "$0.0"
+            "value": "$0"
         }
     ]
 }

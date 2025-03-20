@@ -1,31 +1,26 @@
 Property,Priority,Work Order Type,Home Warranty Expiration,Work Order Number,Job Description,Instructions,Status,Vendor,Unit,Primary Resident,Created At,Estimate Req On,Estimated On,Estimate Amount,Estimate Approval Status,Estimate Approved On,Estimate Approval Last Requested On,Scheduled Start,Scheduled End,Work Done On,Completed On,Amount,Invoice,Unit Turn ID,Recurring,Work Order Issue
-
-"-> TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814","","","","","","","","","","","","","","","","","","","","","","","","","",""
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2916-1,"In the living room, the left set of blinds has a bent blind and the right set of blinds does not move up anymore",,New,,131,"Brody, Andrew",02/14/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2930-1,"Please clean wallpaper near Apt 1111. Also, there are several bad ceiling tiles on that hallway. Thanks!",,New,,,,02/19/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2931-1,Please touch up exit door paint near 1002.thanks!,,New,,,,02/19/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2932-1,Please clean black line on wall paper near 821. Thanks!,,New,,,,02/19/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2934-1,,,New,,,,02/19/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2935-1,Really bad black marks near storage room C on 7th floor. Can they be cleaned?,,New,,,,02/19/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Urgent,Resident,,3026-1,"Dishwasher not getting hot again,  fixed last week by maintenance,  still not working.",,New,,1124,"Hopkins, Nathan  T.",03/14/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3027-1,"Seal under bathroom sink & seal behind appliances to prevent bugs - Please come by Monday, 3/17",,New,,1117,"Toppin, Darryl J.",03/14/2025,,,,,,,,,,,0.00,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2916-1,"In the living room, the left set of blinds has a bent blind and the right set of blinds does not move up anymore",,New,,131,"Brody, Andrew",2/14/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2930-1,"Please clean wallpaper near Apt 1111. Also, there are several bad ceiling tiles on that hallway. Thanks!",,New,,,,2/19/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2931-1,Please touch up exit door paint near 1002.thanks!,,New,,,,2/19/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2932-1,Please clean black line on wall paper near 821. Thanks!,,New,,,,2/19/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2934-1,,,New,,,,2/19/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,2935-1,Really bad black marks near storage room C on 7th floor. Can they be cleaned?,,New,,,,2/19/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Urgent,Resident,,3026-1,"Dishwasher not getting hot again,  fixed last week by maintenance,  still not working.",,New,,1124,"Hopkins, Nathan  T.",3/14/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3027-1,"Seal under bathroom sink & seal behind appliances to prevent bugs - Please come by Monday, 3/17",,New,,1117,"Toppin, Darryl J.",3/14/2025,,,,,,,,,,,0,,,No,
 "TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3028-1,"Good afternoon,
 The apartment window is stuck open, when trying to close it - it does not shut all the way, it stays cracked open. I don't want to try and force it shut as it seems there is something from stopping it to close fully. Could you please resolve this, I reached out prior regarding the window not being able to open all the way so it seems there is an issue with the window. 
 
-Thank you!",,New,,T104,"Sajjad, Faisal A.",03/14/2025,,,,,,,,,,,0.00,,,No,Window
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3030-1,"The room is to warm , I have the unit on “off” all day still hot air keep coming out of the wall unit . I also tried to have it set on cool and the same thing  no cool air ",,New,,T303,"Alrashed, Fatema",03/14/2025,,,,,,,,,,,0.00,,,No,Heater
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3032-1,"I have previously requested maintenance on the small cabinet where the middle drawer keep falling out of rail . Maintenance came and I think they fixed it however, the first rower now doesn’t open.",,New,,T303,"Alrashed, Fatema",03/15/2025,,,,,,,,,,,0.00,,,No,Furniture
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3033-1,"The dog waste station trash can by the front driveway/G1 garage is missing the pin or whatever it is that holds the hinge on the lid together, the whole lid is fully detached from the rest of the trash can (i looked around and didn't see anything that could be the missing piece, but it was dark out so it's possible its still out there somewhere)",,New,,,,03/16/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3039-1,please send an exterminator thank you.,,New,,814,"EMERSON, CHRISTOPHER",03/17/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3044-1,per Leasing replace microwave and dishwasher ,,New,,915,"DERMEL, BAUER",03/18/2025,,,,,,,,,,,0.00,,,No,
-"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3047-1,desk chair is broken,,New,,T208,"MILES, JULIE",03/19/2025,,,,,,,,,,,0.00,,,No,Furniture
+Thank you!",,New,,T104,"Sajjad, Faisal A.",3/14/2025,,,,,,,,,,,0,,,No,Window
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3030-1,"The room is to warm , I have the unit on “off” all day still hot air keep coming out of the wall unit . I also tried to have it set on cool and the same thing  no cool air ",,New,,T303,"Alrashed, Fatema",3/14/2025,,,,,,,,,,,0,,,No,Heater
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3032-1,"I have previously requested maintenance on the small cabinet where the middle drawer keep falling out of rail . Maintenance came and I think they fixed it however, the first rower now doesn’t open.",,New,,T303,"Alrashed, Fatema",3/15/2025,,,,,,,,,,,0,,,No,Furniture
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3033-1,"The dog waste station trash can by the front driveway/G1 garage is missing the pin or whatever it is that holds the hinge on the lid together, the whole lid is fully detached from the rest of the trash can (i looked around and didn't see anything that could be the missing piece, but it was dark out so it's possible its still out there somewhere)",,New,,,,3/16/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3039-1,please send an exterminator thank you.,,New,,814,"EMERSON, CHRISTOPHER",3/17/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3044-1,per Leasing replace microwave and dishwasher ,,New,,915,"DERMEL, BAUER",3/18/2025,,,,,,,,,,,0,,,No,
+"TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Resident,,3047-1,desk chair is broken,,New,,T208,"MILES, JULIE",3/19/2025,,,,,,,,,,,0,,,No,Furniture
 "TOPAZ HOUSE - 4400 E WEST Hwy BETHESDA, MD 20814",Normal,Internal,,3048-1,"MOVE IN DATE - March 22
 1.  Left door above microwave - door loose, tighten hinge
 2.  The bathtub has some bad looking areas. Can you cover them up with anything?
 3.  Adjust tub drain piece - not level
 4.  Entry door has some chips on the left side at the bottom.  Can you make this look better?
 5.  The tiles in the bathroom need a good cleaning.
-Thank you!",,New,,T305,,03/19/2025,,,,,,,,,,,0.00,,,No,
-,,,,,,,,,,,,,,0.00,,,,,,,,0.00,,,,
-
-Total,,,,,,,,,,,,,,0.00,,,,,,,,0.00,,,,
+Thank you!",,New,,T305,,3/19/2025,,,,,,,,,,,0,,,No,

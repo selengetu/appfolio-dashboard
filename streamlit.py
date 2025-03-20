@@ -73,18 +73,6 @@ image_paths = []
 # 🔹 3. Display DataFrames in Tabs
 if dfs:
     tab1, tab2, tab3 = st.tabs(["🏠 Tenant Data", "🔧 Work Orders", "🏢 Vacancies"])
-    
-    with tab1:
-        st.subheader("🏠 Tenant Data")
-        st.write(dfs["Tenant Data"].head())
-
-    with tab2:
-        st.subheader("🔧 Work Orders")
-        st.write(dfs["Work Orders"].head())
-
-    with tab3:
-        st.subheader("🏢 Vacancies")
-        st.write(dfs["Vacancies"].head())
 
 with tab1:
     col1, col2, col3, col4 = st.columns(4)
@@ -635,6 +623,19 @@ with tab3:
 
         # Display the chart
         st.plotly_chart(fig10, use_container_width=True)
+
+    with tab1:
+        st.subheader("🏠 Tenant Data")
+        st.write(dfs["Tenant Data"])
+
+    with tab2:
+        st.subheader("🔧 Work Orders")
+        st.write(dfs["Work Orders"].head())
+
+    with tab3:
+        st.subheader("🏢 Vacancies")
+        st.write(dfs["Vacancies"].head())
+
 
     # Define the metrics dictionary
     def convert_values(data):

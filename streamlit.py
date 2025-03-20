@@ -188,7 +188,7 @@ with tab1:
         filtered_df = dfs["Tenant Data"].dropna(subset=["Rent", "Market Rent"])
 
         # **Group by BD/BA and Calculate Avg Rent and Market Rent**
-        avg_rent_df = filtered_df.groupby("BD/BA")[["Rent", "Market Rent"]].mean().round(1).reset_index()
+        avg_rent_df = filtered_df.groupby("BD/BA")[["Rent", "Market Rent"]].mean().round(0).reset_index()
 
         # **Create a Bar Chart Comparing Avg Rent and Market Rent**
         fig3 = px.bar(

@@ -181,56 +181,78 @@ with tab1:
 
     # Use col2 and col5 for two separate charts
     with col7:
+            # Ensure Rent and Market Rent are numeric
         dfs["Tenant Data"]["Rent"] = pd.to_numeric(dfs["Tenant Data"]["Rent"], errors="coerce")
         dfs["Tenant Data"]["Market Rent"] = pd.to_numeric(dfs["Tenant Data"]["Market Rent"], errors="coerce")
 
-        # **Drop invalid rows where Rent or Market Rent is NaN**
+        # Drop invalid rows where Rent or Market Rent is NaN
         filtered_df = dfs["Tenant Data"].dropna(subset=["Rent", "Market Rent"])
 
-        # **Group by BD/BA and Calculate Avg Rent and Market Rent**
+        # Group by BD/BA and Calculate Avg Rent and Market Rent
         avg_rent_df = filtered_df.groupby("BD/BA")[["Rent", "Market Rent"]].mean().round(0).reset_index()
 
-        # **Create a Bar Chart Comparing Avg Rent and Market Rent**
-        fig3 = px.bar(
-            avg_rent_df,
-            x="BD/BA",
-            y=["Rent", "Market Rent"],
-            title="📊 Avg Rent vs. Market Rent by BD/BA",
-            labels={"value": "Amount ($)", "variable": "Rent Type", "BD/BA": "Bedroom/Bathroom"},
-            barmode="group",  # Side-by-side bars
-            text_auto=True,  # Automatically display text labels
-        )
+        # Count the number of units per BD/BA
+        unit_count_df = filtered_df.groupby("BD/BA").size().reset_index(name="Unit Count")
 
-        # Enhance design with custom layout updates
+        # Merge DataFrames to align BD/BA categories
+        final_df = avg_rent_df.merge(unit_count_df, on="BD/BA")
+
+        # Create figure with Bar Chart for Rent & Market Rent
+        fig3 = go.Figure()
+
+        # Add Rent bars
+        fig3.add_trace(go.Bar(
+            x=final_df["BD/BA"], 
+            y=final_df["Rent"], 
+            name="Avg Rent",
+            marker_color="blue",
+            text=final_df["Rent"], 
+            textposition="auto"
+        ))
+
+        # Add Market Rent bars
+        fig3.add_trace(go.Bar(
+            x=final_df["BD/BA"], 
+            y=final_df["Market Rent"], 
+            name="Avg Market Rent",
+            text=final_df["Market Rent"], 
+            textposition="auto"
+        ))
+
+        # Add Line Chart for Unit Count (Secondary Y-Axis)
+        fig3.add_trace(go.Scatter(
+            x=final_df["BD/BA"], 
+            y=final_df["Unit Count"], 
+            name="Unit Count",
+            mode="lines+markers",
+            yaxis="y2",
+            line=dict(color="yellow", width=2),
+            marker=dict(size=8, symbol="circle"),
+        ))
+
         fig3.update_layout(
-            xaxis=dict(title_font=dict(size=14), tickfont=dict(size=12)),  # Improve x-axis readability
-            yaxis=dict(title_font=dict(size=14), tickfont=dict(size=12), gridcolor="lightgray"),  # Improve y-axis readability
-            legend=dict(title="Rent Type", font=dict(size=14)),  # Improve legend readability
-            bargap=0.15,  # Reduce gap between bars for better visibility
+            title="📊 Avg Rent vs. Market Rent with Unit Count by BD/BA",
+            xaxis=dict(
+                title=dict(text="Bedroom/Bathroom"), 
+                tickangle=-45, 
+                tickfont=dict(size=12)
+            ),
+            yaxis=dict(
+                title=dict(text="Amount ($)"), 
+                gridcolor="lightgray"
+            ),
+            yaxis2=dict(
+                title=dict(text="Unit Count"), 
+                overlaying="y", 
+                side="right", 
+                showgrid=False
+            ),
+            legend=dict(title=dict(text="Legend")),
+            width=1000, height=600,
+            bargap=0.15,  # Reduce gap between bars
             barmode="group"
         )
-    
-        # 🔹 Improve Layout & Style
-        fig3.update_layout(
-            width=1000, height=600,  # Bigger size
-            legend_title="Rent Type"
-        )
-
-        # 🔹 Customize X-Axis
-        fig3.update_xaxes(
-            title_text="Bedroom/Bathroom",
-            tickangle=-45,  # Rotate x-axis labels for better visibility
-            showgrid=True,
-            gridcolor="lightgray"
-        )
-
-        # 🔹 Customize Y-Axis
-        fig3.update_yaxes(
-            title_text="Amount ($)",
-            gridcolor="lightgray"
-        )
-
-        # Display in Streamlit
+                # Display in Streamlit
         st.plotly_chart(fig3, use_container_width=True)
 
     with col8:

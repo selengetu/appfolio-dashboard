@@ -78,7 +78,9 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4)
     
     # Filter rows where Status == 'Current' and count them
-    current_units = dfs["Tenant Data"][dfs["Tenant Data"]["Status"] == "Current"].shape[0]
+    current = dfs["Tenant Data"][dfs["Tenant Data"]["Status"] == "Current"].shape[0]
+    unrented = dfs["Tenant Data"][dfs["Tenant Data"]["Status"] == "Notice-Unrented"].shape[0]
+    current_units = current+unrented
     vacant_units = dfs["Tenant Data"][dfs["Tenant Data"]["Status"] == "Vacant-Rented"].shape[0]
     # Count total rows (all units)
     all_units = dfs["Tenant Data"].shape[0]
@@ -100,7 +102,7 @@ with tab1:
     col1.metric(label="🏠Total Unit", value=f"{all_units}")
     col2.metric(label="📊 Occupancy Rate", value=f"{occupied:.2f}%")
     col3.metric(label="💵 Total Rent Collected % ", value=f"{(total_rent)/(market_total_rent)*100:,.2f}%")
-    col4.metric(label="🚪Total Move-outs", value=f"{total_move_out}")
+    col4.metric(label="🚪Total Move-outs (Next 60 days)", value=f"{total_move_out}")
 
     col5, col6 = st.columns(2)
 
@@ -179,43 +181,44 @@ with tab1:
 
     # Use col2 and col5 for two separate charts
     with col7:
-        # **Convert Lease Dates to Datetime**
-        dfs["Tenant Data"]["Lease From"] = pd.to_datetime(dfs["Tenant Data"]["Lease From"], errors="coerce")
-        dfs["Tenant Data"]["Lease To"] = pd.to_datetime(dfs["Tenant Data"]["Lease To"], errors="coerce")
+        dfs["Tenant Data"]["Rent"] = pd.to_numeric(dfs["Tenant Data"]["Rent"], errors="coerce")
+        dfs["Tenant Data"]["Market Rent"] = pd.to_numeric(dfs["Tenant Data"]["Market Rent"], errors="coerce")
 
-        # **Calculate Lease Days**
-        dfs["Tenant Data"]["Lease Days"] = (dfs["Tenant Data"]["Lease To"] - dfs["Tenant Data"]["Lease From"]).dt.days
+        # **Drop invalid rows where Rent or Market Rent is NaN**
+        filtered_df = dfs["Tenant Data"].dropna(subset=["Rent", "Market Rent"])
 
-        # **Drop invalid rows where Lease Days is NaN or negative**
-        filtered_df = dfs["Tenant Data"].dropna(subset=["Lease Days"])
-        filtered_df = filtered_df[filtered_df["Lease Days"] > 0]
+        # **Group by BD/BA and Calculate Avg Rent and Market Rent**
+        avg_rent_df = filtered_df.groupby("BD/BA")[["Rent", "Market Rent"]].mean().reset_index()
 
-       
-        # **Ensure "SqFt" column is numeric**
-        filtered_df["Sqft"] = pd.to_numeric(filtered_df["Sqft"], errors="coerce")
+        # **Create a Bar Chart Comparing Avg Rent and Market Rent**
+        fig3 = px.bar(
+            avg_rent_df,
+            x="BD/BA",
+            y=["Rent", "Market Rent"],
+            title="📊 Avg Rent vs. Market Rent by BD/BA",
+            labels={"value": "Amount ($)", "variable": "Rent Type", "BD/BA": "Bedroom/Bathroom"},
+            barmode="group",  # Side-by-side bars
+            text_auto=True,  # Automatically display text labels
+        )
 
-        # **Group by SqFt bins and Calculate Average Lease Days**
-        filtered_df["Sqft Group"] = pd.cut(filtered_df["Sqft"], bins=10).astype(str)
-        avg_lease_days_df = filtered_df.groupby("Sqft Group")["Lease Days"].mean().reset_index()
-
-        # **Create a Bar Chart (Histogram Style)**
-        fig3 = px.bar(avg_lease_days_df, 
-                 x="Sqft Group", 
-                 y="Lease Days", 
-                 title="📊 Avg Lease Days by Sqft Group",
-                 labels={"Lease Days": "Avg Lease Duration (Days)", "Sqft Group": "Square Footage Range"},
-                 color="Lease Days",
-                 text_auto=True,
-                 color_continuous_scale="Viridis")  # Gradient color
-
+        # Enhance design with custom layout updates
+        fig3.update_layout(
+            xaxis=dict(title_font=dict(size=14), tickfont=dict(size=12)),  # Improve x-axis readability
+            yaxis=dict(title_font=dict(size=14), tickfont=dict(size=12), gridcolor="lightgray"),  # Improve y-axis readability
+            legend=dict(title="Rent Type", font=dict(size=14)),  # Improve legend readability
+            bargap=0.15,  # Reduce gap between bars for better visibility
+            barmode="group"
+        )
+    
         # 🔹 Improve Layout & Style
         fig3.update_layout(
             width=1000, height=600,  # Bigger size
+            legend_title="Rent Type"
         )
 
         # 🔹 Customize X-Axis
         fig3.update_xaxes(
-            title_text="Square Footage Range",
+            title_text="Bedroom/Bathroom",
             tickangle=-45,  # Rotate x-axis labels for better visibility
             showgrid=True,
             gridcolor="lightgray"
@@ -223,10 +226,11 @@ with tab1:
 
         # 🔹 Customize Y-Axis
         fig3.update_yaxes(
-            title_text="Avg Lease Duration (Days)",
+            title_text="Amount ($)",
             gridcolor="lightgray"
         )
-        
+
+        # Display in Streamlit
         st.plotly_chart(fig3, use_container_width=True)
 
     with col8:
@@ -481,20 +485,18 @@ with tab3:
 
         # **Convert "Days Vacant" to Numeric**
         df1["Days Vacant"] = pd.to_numeric(df["Days Vacant"], errors="coerce")
-        df1["Sqft"] = pd.to_numeric(df1["Sqft"], errors="coerce")
 
-        # **Drop NaN values**
-        df_filtered1 = df1.dropna(subset=["Sqft", "Days Vacant"])
+        df_filtered1 = df1.dropna(subset=["Bed/Bath", "Days Vacant"])
 
         # **Create Scatter Plot**
         fig8 = px.scatter(df_filtered1, 
-                 x="Sqft", 
+                 x="Bed/Bath", 
                  y="Days Vacant",
                  title="📊 Relationship Between Square Footage and Days Vacant",
-                 labels={"Sqft": "Square Footage", "Days Vacant": "Days Vacant"},
+                 labels={"Bed/Bath": "Bed/Bath", "Days Vacant": "Days Vacant"},
                  color="Days Vacant",  # Color based on vacancy duration
                  size="Days Vacant",  # Marker size based on days vacant
-                 hover_data=["Sqft", "Days Vacant"],  # Display additional data on hover
+                 hover_data=["Bed/Bath", "Days Vacant"],  # Display additional data on hover
                  color_continuous_scale="Viridis",  # Gradient color scheme
                  opacity=0.7,  # Reduce opacity for better visualization
                  size_max=15)  # Adjust marker size
@@ -630,11 +632,11 @@ with tab3:
 
     with tab2:
         st.subheader("🔧 Work Orders")
-        st.write(dfs["Work Orders"].head())
+        st.write(dfs["Work Orders"])
 
     with tab3:
         st.subheader("🏢 Vacancies")
-        st.write(dfs["Vacancies"].head())
+        st.write(dfs["Vacancies"])
 
 
     # Define the metrics dictionary

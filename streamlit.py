@@ -132,51 +132,60 @@ with tab1:
         st.plotly_chart(fig1, use_container_width=True)
 
     with col5:
-        # Convert "Move-in" to datetime, handling errors
-        dfs["Tenant Data"]["Move-in"] = pd.to_datetime(dfs["Tenant Data"]["Move-in"], errors="coerce")
 
-        # Remove rows where "Move-in" is NaN (invalid dates)
-        df = dfs["Tenant Data"].dropna(subset=["Move-in"])
+        # Load dataset
+        tenant_df = dfs["Tenant Data"]  # Ensure the correct dataset key
 
-        # Ensure "Rent" and "Market Rent" are numeric
-        df["Rent"] = pd.to_numeric(df["Rent"], errors="coerce")
-        df["Market Rent"] = pd.to_numeric(df["Market Rent"], errors="coerce")
+        # Ensure "Rent" column is numeric
+        tenant_df["Rent"] = pd.to_numeric(tenant_df["Rent"], errors="coerce")
 
-        # Sort data by "Move-in" date
-        df = df.sort_values("Move-in")
+        # Total units per BD/BA
+        total_units = tenant_df.groupby("BD/BA").size()
 
-        # **Create a Line Chart**
-        fig2 = px.line(df, 
-              x="Move-in", 
-              y=["Rent", "Market Rent"], 
-              title="📈 Rent Trends Over Time",
-              markers=True, 
-              labels={"value": "Amount ($)", "Move-in": "Move-in Date"},
-              line_shape="spline",  # Smooth Curves
-              color_discrete_sequence=["#FF5733", "#33FF57"])  # Custom Colors
+        # Occupied units: Count only those with status "Current" or "Notice-Unrented"
+        occupied_units = tenant_df[tenant_df["Status"].isin(["Current", "Notice-Unrented"])].groupby("BD/BA").size()
 
-        # 🔹 Improve Layout & Style
-        fig2.update_layout(
-            width=1000, height=600,  # Bigger size
-        )
+        # Create summary table
+        bd_ba_summary = pd.DataFrame({
+            "Total_Rent": tenant_df.groupby("BD/BA")["Rent"].sum(),
+            "Total_Units": total_units,
+            "Occupied_Units": occupied_units
+        }).fillna(0)  # Fill NaN for BD/BA groups without occupied units
 
-        # 🔹 Customize Axes
-        fig2.update_xaxes(
-            title_text="Move-in Date",
-            showgrid=True,  # Show grid for readability
-            gridcolor="lightgray",
-            tickangle=-45  # Rotate x-axis labels
-        )
+        # Calculate occupancy rate per BD/BA
+        bd_ba_summary["Occupancy_Rate"] = (bd_ba_summary["Occupied_Units"] / bd_ba_summary["Total_Units"]) * 100
+        bd_ba_summary["Occupancy_Rate"] = bd_ba_summary["Occupancy_Rate"].round(2).astype(str) + "%"
 
-        fig2.update_yaxes(
-            title_text="Amount ($)",
-            showgrid=True,
-            gridcolor="lightgray"
-        )
+        # 🔹 **Calculate Total Row**
+        total_rent = bd_ba_summary["Total_Rent"].sum()
+        total_units_all = bd_ba_summary["Total_Units"].sum()
+        occupied_units_all = bd_ba_summary["Occupied_Units"].sum()
 
-        # Display the Line Chart
-        st.plotly_chart(fig2, use_container_width=True)
-    
+        # 🔹 **Calculate Overall Occupancy Rate**
+        overall_occupancy_rate = (occupied_units_all / total_units_all) * 100 if total_units_all > 0 else 0
+        overall_occupancy_rate = f"{round(overall_occupancy_rate, 2)}%"
+
+        # 🔹 **Append "Total" Row**
+        total_row = pd.DataFrame([{
+            "BD/BA": "Total",
+            "Total_Rent": total_rent,
+            "Occupancy_Rate": overall_occupancy_rate
+        }])
+
+        # Remove "Total_Units" & "Occupied_Units" before display
+        bd_ba_summary = bd_ba_summary.drop(columns=["Total_Units", "Occupied_Units"])
+
+        # Reset index for display
+        bd_ba_summary = bd_ba_summary.reset_index()
+
+        # Append total row
+        bd_ba_summary = pd.concat([bd_ba_summary, total_row], ignore_index=True)
+
+        # Display the table in Streamlit
+        st.write("### 🏠 Total Rent & Occupancy Rate by BD/BA")
+        st.dataframe(bd_ba_summary, use_container_width=True)
+
+            
     col7, col8 = st.columns(2)
 
     # Use col2 and col5 for two separate charts

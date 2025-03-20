@@ -6,7 +6,7 @@ import plotly.io as pio
 import plotly.graph_objects as go
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
@@ -503,47 +503,70 @@ with tab3:
         st.plotly_chart(fig7, use_container_width=True)
 
     with col37:
+       
         df1 = dfs["Vacancies"]  # Ensure you're using the correct dataset key
 
-        # **Convert "Days Vacant" to Numeric**
-        df1["Days Vacant"] = pd.to_numeric(df["Days Vacant"], errors="coerce")
+        # Convert "Days Vacant" to numeric
+        df1["Days Vacant"] = pd.to_numeric(df1["Days Vacant"], errors="coerce")
 
+        # Drop missing values
         df_filtered1 = df1.dropna(subset=["Bed/Bath", "Days Vacant"])
 
-        # **Create Scatter Plot**
-        fig8 = px.scatter(df_filtered1, 
-                 x="Bed/Bath", 
-                 y="Days Vacant",
-                 title="📊 Relationship Between Square Footage and Days Vacant",
-                 labels={"Bed/Bath": "Bed/Bath", "Days Vacant": "Days Vacant"},
-                 color="Days Vacant",  # Color based on vacancy duration
-                 size="Days Vacant",  # Marker size based on days vacant
-                 hover_data=["Bed/Bath", "Days Vacant"],  # Display additional data on hover
-                 color_continuous_scale="Viridis",  # Gradient color scheme
-                 opacity=0.7,  # Reduce opacity for better visualization
-                 size_max=15)  # Adjust marker size
+        # Aggregate data: Calculate average "Days Vacant" per "Bed/Bath"
+        df_avg_vacancy = df_filtered1.groupby("Bed/Bath", as_index=False)["Days Vacant"].mean().round(1)
+
+        # Aggregate data: Count the number of units per "Bed/Bath"
+        df_units_count = df_filtered1.groupby("Bed/Bath", as_index=False).size()
+
+        # Merge both datasets for consistency in sorting
+        df_combined = df_avg_vacancy.merge(df_units_count, on="Bed/Bath").sort_values(by="Bed/Bath")
+
+        # Create Bar Chart for "Avg Days Vacant"
+        fig8 = go.Figure()
+
+        fig8.add_trace(
+            go.Bar(
+                x=df_combined["Bed/Bath"],
+                y=df_combined["Days Vacant"],
+                name="Avg Days Vacant",
+                marker=dict(color=df_combined["Days Vacant"], colorscale="Blugrn"),  # Color scale
+                text=df_combined["Days Vacant"],
+                textposition="auto"
+            )
+        )
+
+        # Add Line Chart for "Number of Units"
+        fig8.add_trace(
+            go.Scatter(
+                x=df_combined["Bed/Bath"],
+                y=df_combined["size"],  # Number of units
+                name="Number of Units",
+                mode="lines+markers",
+                line=dict(color="red", width=2),
+                marker=dict(size=8, symbol="circle"),
+                yaxis="y2"  # Use secondary y-axis
+            )
+        )
 
         # 🔹 Improve Layout & Style
         fig8.update_layout(
+            title="📊 Average Days Vacant & Number of Units by Bed/Bath",
+            xaxis=dict(title="Bedroom/Bathroom", title_font=dict(size=14), tickfont=dict(size=12)),
+            yaxis=dict(title="Avg Days Vacant", title_font=dict(size=14), tickfont=dict(size=12), gridcolor="lightgray"),
+            yaxis2=dict(
+                title="Number of Units",
+                overlaying="y",
+                side="right",
+                showgrid=False,
+                title_font=dict(size=14),
+                tickfont=dict(size=12),
+            ),
+            legend=dict(title="Metrics", font=dict(size=12)),
             width=1000, height=600,  # Bigger size
-            margin=dict(l=50, r=50, t=50, b=50)  # Adjust margins
-
+            margin=dict(l=50, r=50, t=50, b=50)
         )
 
-        # 🔹 Customize X-Axis
-        fig8.update_xaxes(
-            title_text="Square Footage",
-            showgrid=True,  # Show gridlines
-            gridcolor="lightgray"
-        )
-
-        # 🔹 Customize Y-Axis
-        fig8.update_yaxes(
-            title_text="Days Vacant",
-            showgrid=True,
-            gridcolor="lightgray"
-        )
-
+        # Show the chart in Streamlit
         st.plotly_chart(fig8, use_container_width=True)
 
     col38, col39 = st.columns(2)
@@ -587,66 +610,53 @@ with tab3:
         st.plotly_chart(fig9, use_container_width=True)
 
     with col39:
-            
-                # Filter the Vacancies dataset to include only rows where "Rent Ready" is "Yes"
-        rent_ready_df = dfs["Vacancies"][dfs["Vacancies"]["Rent Ready"] == "Yes"]
+                # Load dataset
+        rent_ready_df = dfs["Vacancies"]
 
-        # Ensure "Available On" and "Next Move In" columns are in datetime format
+        # Ensure date columns are in datetime format
         rent_ready_df["Available On"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
         rent_ready_df["Next Move In"] = pd.to_datetime(rent_ready_df["Next Move In"], errors="coerce")
-        
 
-        # Extract month and year from "Available On" and "Next Move In"
+        # Extract month-year in Period (M) format
         rent_ready_df["Available On Month"] = rent_ready_df["Available On"].dt.to_period("M")
         rent_ready_df["Next Move In Month"] = rent_ready_df["Next Move In"].dt.to_period("M")
 
-        # Count the number of available units for each month (Available On)
-        available_on_month_counts = rent_ready_df["Available On Month"].value_counts().sort_index()
+        # Count the number of units for each month
+        available_on_counts = rent_ready_df["Available On Month"].value_counts().sort_index()
+        next_move_in_counts = rent_ready_df["Next Move In Month"].value_counts().sort_index()
 
-        # Count the number of units with a "Next Move In" for each month
-        next_move_in_month_counts = rent_ready_df["Next Move In Month"].value_counts().sort_index()
-
-        # Combine both counts into a DataFrame for easier plotting
+        # Combine counts into a DataFrame
         month_counts_df = pd.DataFrame({
-            "Available On": available_on_month_counts,
-            "Next Move In": next_move_in_month_counts
-        }).fillna(0)  # Fill NaN values with 0
+            "Available On": available_on_counts,
+            "Next Move In": next_move_in_counts
+        }).fillna(0)  # Fill NaN values with 0 for missing months
 
-        # Plot the bar chart
+        # Convert index (Period) to string for plotting
+        month_counts_df.index = month_counts_df.index.astype(str)
+
+        # 🔹 **Plot the improved bar chart**
         fig10 = px.bar(
             month_counts_df,
-            x=month_counts_df.index.astype(str),  # Convert PeriodIndex to string for x-axis labels
-            y=["Available On", "Next Move In"],
+            x=month_counts_df.index,  # Month labels on X-axis
+            y=["Available On", "Next Move In"],  # Values on Y-axis
             title="📊 Available On and Next Move In by Month (Rent Ready Units)",
             labels={"value": "Count of Units", "index": "Month"},
-            barmode="group",  # Display bars for each month side by side
-            text_auto=True,  # Display text inside bars
-            color_discrete_sequence=["#636EFA", "#EF553B"],  # Custom color palette for bars
+            barmode="group",  # Side-by-side bars
+            text_auto=True,  # Show counts inside bars
+            color_discrete_sequence=["#636EFA", "#EF553B"]  # Custom colors (Blue & Red)
         )
 
-        # Update layout for better aesthetics
+        # 🔹 **Improve Layout**
         fig10.update_layout(
+            xaxis=dict(title="Month", title_font=dict(size=14), tickfont=dict(size=12)),
+            yaxis=dict(title="Count of Units", title_font=dict(size=14), tickfont=dict(size=12), gridcolor="lightgray"),
             width=1000, height=600,  # Bigger size
-            xaxis_title="Month",
-            yaxis_title="Count of Units",
-            xaxis=dict(
-                tickangle=45,  # Angle the x-axis labels for better readability
-                tickmode="array",  # Ensure that all months are displayed properly
-            ),
-            yaxis=dict(
-                showgrid=True,  # Show gridlines for better readability
-                gridcolor='lightgray',  # Light gridlines for better contrast
-            ),
-            margin=dict(t=50, b=80, l=50, r=50),  # Add space around the plot
-            hovermode="x unified",  # Display hover information for all bars in the same month
-            showlegend=True,  # Show legend for "Available On" and "Next Move In"
+            margin=dict(l=50, r=50, t=50, b=50)
         )
 
-        # Update bar text for better visibility
-        fig10.update_traces(textposition="inside", texttemplate="%{text:.2s}", textfont_size=12)
-
-        # Display the chart
+        # Show the chart in Streamlit
         st.plotly_chart(fig10, use_container_width=True)
+        
 
     with tab1:
         st.subheader("🏠 Tenant Data")

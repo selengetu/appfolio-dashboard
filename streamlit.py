@@ -327,10 +327,12 @@ with tab1:
 
         # Optional: Fill missing with "-"
         combined_summary = combined_summary.fillna("-")
-
-        # Display in Streamlit
+     
+          # Display in Streamlit
         st.write("### 📊 Comparison: Current vs 3-Month-Ago Rent & Occupancy")
-        st.dataframe(combined_summary, use_container_width=True)
+
+        # Display without the automatic index
+        st.dataframe(combined_summary.reset_index(drop=True), use_container_width=True)
 
             
     col7, col8 = st.columns(2)

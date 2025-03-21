@@ -5,3 +5,4 @@ plotly
 pdfkit
 fpdf
 kaleido
+matplotlib

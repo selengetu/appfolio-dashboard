@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import time
 import re
@@ -37,6 +37,12 @@ TENANT_FOLDER = os.path.join(BASE_DOWNLOAD_FOLDER, "tenant_data")
 WORK_ORDER_FOLDER = os.path.join(BASE_DOWNLOAD_FOLDER, "work_orders")
 VACANCY_FOLDER = os.path.join(BASE_DOWNLOAD_FOLDER, "vacancies")
 
+today = datetime.today()
+
+# Calculate required dates
+three_months_ago = (today - timedelta(days=90)).strftime("%m/%d/%Y")  # Approximate 3 months ago
+same_day_last_year = (today.replace(year=today.year - 1)).strftime("%m/%d/%Y")  # Same day last year
+beginning_of_year = datetime(today.year, 1, 1).strftime("%m/%d/%Y")  # January 1st of current year
 
 # SimpleTexting API Key
 API_TOKEN = os.getenv('SIMPLE_TEXTING_API_TOKEN')
@@ -149,46 +155,57 @@ def get_latest_csv(downloads_folder, max_wait_time=30):
     
     raise FileNotFoundError(" No CSV files found in the downloads folder after waiting.")
 
-def clean_csv(file_path):
+def clean_csv(file_path,file_prefix):
     df = pd.read_csv(file_path)
-    df = df.iloc[:-1]
-
-    # Handle phone numbers
-    df['Phone_Number'] = df['Phone Numbers'].str.split(',').str[0] 
-    df['Email'] = df['Emails'].str.split(',').str[0]
-    df = df.drop(columns=['Property', 'Rent', 'Tenant Type', 'Deposit', 'Tenant Tags', 'Lease To', 'Move-in','Emails', 'Phone Numbers'])
-    df['Phone_Number'] = df['Phone_Number'].str.replace(r'^(Mobile:|Phone: )\s*', '', regex=True)
-    df['Last_Name'] = df['Tenant'].str.split(',').str[0] 
-    df['First_Name'] = df['Tenant'].str.split(',').str[1] 
-    df['First_Name'] = df['First_Name'].str.upper()
-    df['Last_Name'] = df['Last_Name'].str.upper()
-
-     # If 'First_Name' is null, use 'Last_name'
-    df['First_Name'] = df['First_Name'].fillna(df['Last_Name'])
+    df = df.iloc[1:]
+    df = df.iloc[:-2]
     
-    # Generate a timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = f'C:\\Users\\SelengeTulga\\Downloads\\Tenant\\cleaned_csv\\tenant_directory_cleaned_{timestamp}.csv'
+    output_path = f'C:\\Users\\SelengeTulga\\Documents\\GitHub\\appfolio-dashboard\\data\\{file_prefix}_cleaned_{timestamp}.csv'
     
     df.to_csv(output_path, index=False, encoding='utf-8-sig')
     print(f"CSV saved to: {output_path}")
     logging.info(f"CSV saved to: {output_path}")
 
-def download_csv(driver, page_url, folder, file_prefix):
+def download_csv(driver, page_url, file_prefix, file_type):
     """Navigate to a page, download CSV, and move it to the correct folder."""
     logging.info(f"Navigating to {page_url} and downloading CSV...")
     driver.get(page_url)
     time.sleep(3)
 
+    if file_type  != 1:
+        date_input = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "filters_as_of_to")))
+        date_input.clear()
+
+        date_values = {
+            2: three_months_ago,
+            3: same_day_last_year,
+            4: beginning_of_year
+        }
+
+        if file_type in date_values:
+            date_input.send_keys(date_values[file_type])
+            
     # Click update and download CSV
     click_update_button(driver)
     time.sleep(3)
     open_dropdown_and_click_csv(driver)
     time.sleep(5)
-
-    # Retrieve latest CSV and move it to the correct folder
-    downloaded_csv = get_latest_csv(BASE_DOWNLOAD_FOLDER)
     
+    # Retrieve latest CSV and move it to the correct folder
+    latest_csv = get_latest_csv(BASE_DOWNLOAD_FOLDER)
+    if latest_csv:
+        print(f"[SUCCESS] CSV file ready: {latest_csv}")
+        print(f"[SUCCESS] CSV URL: file://{os.path.abspath(latest_csv)}")
+        logging.info(f"[SUCCESS] CSV file ready: {latest_csv}")
+        logging.info(f"[SUCCESS] CSV URL: file://{os.path.abspath(latest_csv)}")
+        clean_csv(latest_csv, file_prefix)
+        success = True  # Mark as successful
+    else:
+        print("[ERROR] No CSV file was found or generated.")
+        logging.info("[ERROR] No CSV file was found or generated.")
+
+
 
 def get_data_from_appfolio():
     logging.info("Started Appfolio data process")
@@ -266,14 +283,22 @@ def get_data_from_appfolio():
         
         time.sleep(3)  # Allow page to load
 
+        tenant_csv = download_csv(driver, LOGIN_URL, "tenant_data", 1)
+
        # Download Tenant Data
-        tenant_csv = download_csv(driver, LOGIN_URL, TENANT_FOLDER, "tenant_data")
+        three_month_csv = download_csv(driver, LOGIN_URL, "t_rent", 2)
+
+        # Download Tenant Data
+        same_day_csv = download_csv(driver, LOGIN_URL, "same_day", 3)
+
+        # Download Tenant Data
+        beg_year_csv = download_csv(driver, LOGIN_URL, "beg_year", 4)
 
         # Download Work Order Data
-        work_order_csv = download_csv(driver, WORK_ORDER_URL, WORK_ORDER_FOLDER, "work_order")
+        work_order_csv = download_csv(driver, WORK_ORDER_URL, "work_order", 1)
 
         # Download Vacancy Data
-        vacancy_csv = download_csv(driver, VACANCY_URL, VACANCY_FOLDER, "vacancy")
+        vacancy_csv = download_csv(driver, VACANCY_URL, "vacancy", 1)
 
         success = True  # Mark as successful
     except Exception as e:
@@ -292,5 +317,5 @@ def get_data_from_appfolio():
 
 
 if __name__ == "__main__":
-    get_data_from_appfolio()
+        get_data_from_appfolio()
     

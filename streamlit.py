@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import json
 import os
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+
 # Set page layout
 st.set_page_config(page_title="Business Dashboards", layout="wide")
 
@@ -17,16 +19,16 @@ except ImportError:
     os.system("pip install kaleido")
 
 BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
-
+IMG_DIR = "plotly_pdf_images"
 st.title("📊 Appfolio Dashboards")
 # Define file prefixes
 file_prefixes = {
-    "Tenant Data": "rent_roll",
-    "Work Orders": "work_order",
-    "Vacancies": "unit_vacancy_detail",
-    "T_rent": "t_rent",
-    "Beg Year": "beg_year",
-    "Sameday": "same_day",
+    "Tenant Data": "tenant_data_cleaned",
+    "Work Orders": "work_order_cleaned",
+    "Vacancies": "vacancy_cleaned",
+    "T_rent": "t_rent_cleaned",
+    "Beg Year": "beg_year_cleaned",
+    "Sameday": "same_day_cleaned",
 }
 
 # Initialize a dictionary to store the latest file for each category
@@ -36,10 +38,23 @@ latest_files = {}
 files_in_directory = os.listdir(BASE_DIR)
 
 # Function to extract date from the filename
-def extract_date_from_filename(filename):
-    # Assuming the date format is YYYYMMDD just before the .csv extension
-    date_str = filename.split('-')[-1].split('.')[0]  # Extract the date part
-    return datetime.strptime(date_str, "%Y%m%d")
+def extract_timestamp_from_filename(filename):
+    """
+    Extracts datetime object from filenames like 'tenant_data_cleaned_20250321_115751.csv'
+    """
+    try:
+        # Extract the last two underscore-separated parts before .csv
+        parts = filename.rsplit("_", 2)  # ['tenant_data_cleaned', '20250321', '115751.csv']
+        if len(parts) < 3:
+            raise ValueError("Invalid filename format")
+        
+        date_str, time_str = parts[-2], parts[-1].split(".")[0]  # Get YYYYMMDD and HHMMSS
+
+        # Convert to datetime object
+        return datetime.strptime(f"{date_str}_{time_str}", "%Y%m%d_%H%M%S")
+    except ValueError as e:
+        print(f"Error parsing date from {filename}: {e}")
+        return datetime.min  # Return a minimal datetime to avoid crashing
 
 # Iterate through each category and find the latest file
 for category, prefix in file_prefixes.items():
@@ -47,14 +62,15 @@ for category, prefix in file_prefixes.items():
     relevant_files = [f for f in files_in_directory if f.startswith(prefix) and f.endswith(".csv")]
     
     if relevant_files:
-        # Sort the files by the date extracted from their filenames in descending order (latest first)
-        latest_file = max(relevant_files, key=extract_date_from_filename)
+        # Sort the files by timestamp extracted from their filenames in descending order (latest first)
+        latest_file = max(relevant_files, key=extract_timestamp_from_filename)
         latest_files[category] = os.path.join(BASE_DIR, latest_file)
 
 # Print the latest files for each category
 for category, file_path in latest_files.items():
     print(f"Latest {category}: {file_path}")
-    
+
+# Store latest files in a dictionary
 FILES = {
     "Tenant Data": latest_files.get("Tenant Data"),
     "Work Orders": latest_files.get("Work Orders"),
@@ -284,21 +300,21 @@ with tab1:
 
             # Rename columns before merging
         bd_ba_summary = bd_ba_summary.rename(columns={
-            "Total_Rent": "Current Total_Rent",
-            "Occupancy_Rate": "Current Occupancy_Rate"
+            "Total_Rent": "Cur Total",
+            "Occupancy_Rate": "Cur Oc. Rate"
         })
 
         three_month_bd_ba_summary = three_month_bd_ba_summary.rename(columns={
-            "Total_Rent": "3Mo Ago Total_Rent",
-            "Occupancy_Rate": "3Mo Ago Occupancy_Rate"
+            "Total_Rent": "T3 Total",
+            "Occupancy_Rate": "T3 Oc. Rate"
         })
         beg_year_bd_ba_summary = beg_year_bd_ba_summary.rename(columns={
-            "Total_Rent": "Beginning of Year Total_Rent",
-            "Occupancy_Rate": "Beginning of Year Occupancy_Rate"
+            "Total_Rent": "BOY Total",
+            "Occupancy_Rate": "BOY Oc. Rate"
         })
         same_day_bd_ba_summary = same_day_bd_ba_summary.rename(columns={
-            "Total_Rent": "Same Day of Last Year Total_Rent",
-            "Occupancy_Rate": "Same Day of Last Year Occupancy_Rate"
+            "Total_Rent": "SDLY Total",
+            "Occupancy_Rate": "SDLY Oc. Rate"
         })
 
 
@@ -333,6 +349,29 @@ with tab1:
 
         # Display without the automatic index
         st.dataframe(combined_summary.reset_index(drop=True), use_container_width=True)
+        
+        def save_table_as_image(df, path):
+            
+            fig, ax = plt.subplots(figsize=(12, max(1.2, len(df) * 0.3)))  # Min height control
+            ax.axis('tight')
+            ax.axis('off')
+            
+            table = ax.table(cellText=df.values,
+                            colLabels=df.columns,
+                            loc='center',
+                            cellLoc='center')
+            
+            table.auto_set_font_size(False)
+            table.set_fontsize(12)
+            table.auto_set_column_width([i for i in range(len(df.columns))])  # Adjust column width
+
+            fig.tight_layout()
+            plt.savefig(path, dpi=300, bbox_inches='tight', pad_inches=0.1)
+            plt.close(fig)
+
+        # Save the table with better formatting
+        table_img_path = os.path.join(IMG_DIR, "combined_summary.png")
+        save_table_as_image(combined_summary.reset_index(drop=True), table_img_path)
 
             
     col7, col8 = st.columns(2)
@@ -373,6 +412,7 @@ with tab1:
             x=final_df["BD/BA"], 
             y=final_df["Market Rent"], 
             name="Avg Market Rent",
+             marker_color="green",
             text=final_df["Market Rent"], 
             textposition="auto"
         ))
@@ -384,7 +424,7 @@ with tab1:
             name="Unit Count",
             mode="lines+markers",
             yaxis="y2",
-            line=dict(color="yellow", width=2),
+            line=dict(color="red", width=2),
             marker=dict(size=8, symbol="circle"),
         ))
 
@@ -412,6 +452,8 @@ with tab1:
         )
                 # Display in Streamlit
         st.plotly_chart(fig3, use_container_width=True)
+        img_path3 = os.path.join(IMG_DIR, "avg_rent.png")
+        fig3.write_image(img_path3)
 
     with col8:
         # Ensure "Status" column exists
@@ -450,6 +492,8 @@ with tab1:
 
             # Display the Pie Chart
             st.plotly_chart(fig4, use_container_width=True)
+            img_path4 = os.path.join(IMG_DIR, "status.png")
+            fig4.write_image(img_path4)
  
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
@@ -480,6 +524,8 @@ with tab1:
 # 🔹 Rotate x-axis labels
         fig1.update_xaxes(tickangle=-45) 
         st.plotly_chart(fig1, use_container_width=True)
+        img_path1 = os.path.join(IMG_DIR, "late.png")
+        fig1.write_image(img_path1)
 
 with tab2:
     col21, col22, col23, col24 = st.columns(4)
@@ -547,6 +593,8 @@ with tab2:
 
             # Display the Pie Chart
             st.plotly_chart(fig5, use_container_width=True)
+            img_path5 = os.path.join(IMG_DIR, "order-type.png")
+            fig5.write_image(img_path5)
 
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
@@ -599,6 +647,9 @@ with tab2:
         )
         # Display the chart
         st.plotly_chart(fig6, use_container_width=True)
+        img_path6 = os.path.join(IMG_DIR, "order-issue.png")
+        fig6.write_image(img_path6)
+
 
 with tab3:
     col31, col32, col33, col34 = st.columns(4)
@@ -663,7 +714,8 @@ with tab3:
         )
 
         st.plotly_chart(fig9, use_container_width=True)
-
+        img_path9 = os.path.join(IMG_DIR, "unit-count.png")
+        fig9.write_image(img_path9)
 
     with col37:
        
@@ -731,6 +783,9 @@ with tab3:
 
         # Show the chart in Streamlit
         st.plotly_chart(fig8, use_container_width=True)
+        img_path8 = os.path.join(IMG_DIR, "bed-bath-avg-day.png")
+        fig8.write_image(img_path8)
+
 
     col38, col39 = st.columns(2)
 
@@ -778,6 +833,8 @@ with tab3:
 
         # Show in Streamlit
         st.plotly_chart(fig7, use_container_width=True)
+        img_path7 = os.path.join(IMG_DIR, "bed-bath-unit.png")
+        fig7.write_image(img_path7)
      
        
     with col39:
@@ -839,6 +896,8 @@ with tab3:
 
         # Display in Streamlit
         st.plotly_chart(fig10, use_container_width=True)
+        img_path10 = os.path.join(IMG_DIR, "move-in-out.png")
+        fig10.write_image(img_path10)
                 
 
     with tab1:
@@ -863,8 +922,8 @@ with tab3:
         "metrics1": [
             {"label": "Total Unit", "value": int(all_units)},
             {"label": "Occupancy Rate", "value": f"{occupied:.2f}%"},
-            {"label": "Total Rent Collected %", "value": f"{(total_rent)/(market_total_rent)*100:,.2f}%"},
-            {"label": "Total Move-outs", "value": int(total_move_out)}
+            {"label": "Total Rent", "value": f"${(total_rent):,.0f}"},
+            {"label": "Total Move-outs (Next 60 days)", "value": int(total_move_out)}
         ],
         "metrics2": [
             {"label": "Total Vacancy", "value": int(total_vacancy)},
@@ -887,3 +946,5 @@ with tab3:
     json_file = "metrics.json"
     with open(json_file, "w") as f:
         json.dump(metrics_data_fixed, f, indent=4)
+
+

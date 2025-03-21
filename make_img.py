@@ -8,16 +8,17 @@ import json
 from datetime import datetime
 import kaleido
 
-# Define directory paths
-BASE_DIR = 'C:\\Users\\SelengeTulga\\Documents\\GitHub\\appfolio-dashboard\\data'
+BASE_DIR = os.path.join(os.getcwd(), "data")  # Use relative path
 IMG_DIR = "plotly_pdf_images"
 os.makedirs(IMG_DIR, exist_ok=True)
 
-# Define file prefixes
 file_prefixes = {
-    "Tenant Data": "rent_roll",
-    "Work Orders": "work_order",
-    "Vacancies": "unit_vacancy_detail"
+    "Tenant Data": "tenant_data_cleaned",
+    "Work Orders": "work_order_cleaned",
+    "Vacancies": "vacancy_cleaned",
+    "T_rent": "t_rent_cleaned",
+    "Beg Year": "beg_year_cleaned",
+    "Sameday": "same_day_cleaned",
 }
 
 # Initialize a dictionary to store the latest file for each category
@@ -27,10 +28,23 @@ latest_files = {}
 files_in_directory = os.listdir(BASE_DIR)
 
 # Function to extract date from the filename
-def extract_date_from_filename(filename):
-    # Assuming the date format is YYYYMMDD just before the .csv extension
-    date_str = filename.split('-')[-1].split('.')[0]  # Extract the date part
-    return datetime.strptime(date_str, "%Y%m%d")
+def extract_timestamp_from_filename(filename):
+    """
+    Extracts datetime object from filenames like 'tenant_data_cleaned_20250321_115751.csv'
+    """
+    try:
+        # Extract the last two underscore-separated parts before .csv
+        parts = filename.rsplit("_", 2)  # ['tenant_data_cleaned', '20250321', '115751.csv']
+        if len(parts) < 3:
+            raise ValueError("Invalid filename format")
+        
+        date_str, time_str = parts[-2], parts[-1].split(".")[0]  # Get YYYYMMDD and HHMMSS
+
+        # Convert to datetime object
+        return datetime.strptime(f"{date_str}_{time_str}", "%Y%m%d_%H%M%S")
+    except ValueError as e:
+        print(f"Error parsing date from {filename}: {e}")
+        return datetime.min  # Return a minimal datetime to avoid crashing
 
 # Iterate through each category and find the latest file
 for category, prefix in file_prefixes.items():
@@ -38,28 +52,35 @@ for category, prefix in file_prefixes.items():
     relevant_files = [f for f in files_in_directory if f.startswith(prefix) and f.endswith(".csv")]
     
     if relevant_files:
-        # Sort the files by the date extracted from their filenames in descending order (latest first)
-        latest_file = max(relevant_files, key=extract_date_from_filename)
+        # Sort the files by timestamp extracted from their filenames in descending order (latest first)
+        latest_file = max(relevant_files, key=extract_timestamp_from_filename)
         latest_files[category] = os.path.join(BASE_DIR, latest_file)
 
 # Print the latest files for each category
 for category, file_path in latest_files.items():
     print(f"Latest {category}: {file_path}")
-    
+
+# Store latest files in a dictionary
 FILES = {
     "Tenant Data": latest_files.get("Tenant Data"),
     "Work Orders": latest_files.get("Work Orders"),
     "Vacancies": latest_files.get("Vacancies"),
+    "T_rent": latest_files.get("T_rent"),
+    "Beg Year": latest_files.get("Beg Year"),
+    "Sameday": latest_files.get("Sameday")
 }
-image_paths = []
+# 🔹 2. Load DataFrames
 dfs = {}
-
-# Load CSV files
 for name, path in FILES.items():
     if os.path.exists(path):  # Check if file exists
         dfs[name] = pd.read_csv(path)
-    else:
-        st.warning(f"⚠️ File not found: {path}")
+
+# Create folder for images
+IMG_DIR = "plotly_images"
+os.makedirs(IMG_DIR, exist_ok=True)
+
+# 🔹 Generate and Save Plotly Charts as Images
+image_paths = []
 
 # Process the tenant data
 tenant_data = dfs.get("Tenant Data")
@@ -99,7 +120,7 @@ if tenant_data is not None:
     img_path1 = os.path.join(IMG_DIR, "tenant_status.png")
     fig1.write_image(img_path1)
     image_paths.append(img_path1)
-
+    fig1.show()
     # Process move-in data
     tenant_data["Move-in"] = pd.to_datetime(tenant_data["Move-in"], errors="coerce")
     df_move_in = tenant_data.dropna(subset=["Move-in"]).sort_values("Move-in")
@@ -430,67 +451,6 @@ if tenant_data is not None:
     img_path9 = os.path.join(IMG_DIR, "unit.png")
     fig9.write_image(img_path9)
     image_paths.append(img_path9)
-
-    rent_ready_df = dfs["Vacancies"][dfs["Vacancies"]["Rent Ready"] == "Yes"]
-
-        # Ensure "Available On" and "Next Move In" columns are in datetime format
-    rent_ready_df["Available On"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
-    rent_ready_df["Next Move In"] = pd.to_datetime(rent_ready_df["Next Move In"], errors="coerce")
-        
-
-        # Extract month and year from "Available On" and "Next Move In"
-    rent_ready_df["Available On Month"] = rent_ready_df["Available On"].dt.to_period("M")
-    rent_ready_df["Next Move In Month"] = rent_ready_df["Next Move In"].dt.to_period("M")
-
-        # Count the number of available units for each month (Available On)
-    available_on_month_counts = rent_ready_df["Available On Month"].value_counts().sort_index()
-
-        # Count the number of units with a "Next Move In" for each month
-    next_move_in_month_counts = rent_ready_df["Next Move In Month"].value_counts().sort_index()
-
-        # Combine both counts into a DataFrame for easier plotting
-    month_counts_df = pd.DataFrame({
-            "Available On": available_on_month_counts,
-            "Next Move In": next_move_in_month_counts
-        }).fillna(0)  # Fill NaN values with 0
-
-        # Plot the bar chart
-    fig10 = px.bar(
-            month_counts_df,
-            x=month_counts_df.index.astype(str),  # Convert PeriodIndex to string for x-axis labels
-            y=["Available On", "Next Move In"],
-            title="📊 Available On and Next Move In by Month (Rent Ready Units)",
-            labels={"value": "Count of Units", "index": "Month"},
-            barmode="group",  # Display bars for each month side by side
-            text_auto=True,  # Display text inside bars
-            color_discrete_sequence=["#636EFA", "#EF553B"],  # Custom color palette for bars
-        )
-
-        # Update layout for better aesthetics
-    fig10.update_layout(
-            width=1000, height=600,  # Bigger size
-            xaxis_title="Month",
-            yaxis_title="Count of Units",
-            xaxis=dict(
-                tickangle=45,  # Angle the x-axis labels for better readability
-                tickmode="array",  # Ensure that all months are displayed properly
-            ),
-            yaxis=dict(
-                showgrid=True,  # Show gridlines for better readability
-                gridcolor='lightgray',  # Light gridlines for better contrast
-            ),
-            margin=dict(t=50, b=80, l=50, r=50),  # Add space around the plot
-            hovermode="x unified",  # Display hover information for all bars in the same month
-            showlegend=True,  # Show legend for "Available On" and "Next Move In"
-        )
-
-        # Update bar text for better visibility
-    fig10.update_traces(textposition="inside", texttemplate="%{text:.2s}", textfont_size=12)
-
-        # Save the chart as an image
-    img_path = os.path.join(IMG_DIR, "available_vs_next_move_in_improved_design.png")
-    fig10.write_image(img_path)
-    image_paths.append(img_path)
 
     rent_ready = dfs["Vacancies"][dfs["Vacancies"]["Rent Ready"] == "Yes"].shape[0]
     urgent_work_orders = dfs["Work Orders"][dfs["Work Orders"]["Priority"] == "Urgent"].shape[0]

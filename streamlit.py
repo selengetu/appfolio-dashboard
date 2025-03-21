@@ -23,7 +23,10 @@ st.title("📊 Appfolio Dashboards")
 file_prefixes = {
     "Tenant Data": "rent_roll",
     "Work Orders": "work_order",
-    "Vacancies": "unit_vacancy_detail"
+    "Vacancies": "unit_vacancy_detail",
+    "T_rent": "t_rent",
+    "Beg Year": "beg_year",
+    "Sameday": "same_day",
 }
 
 # Initialize a dictionary to store the latest file for each category
@@ -56,6 +59,9 @@ FILES = {
     "Tenant Data": latest_files.get("Tenant Data"),
     "Work Orders": latest_files.get("Work Orders"),
     "Vacancies": latest_files.get("Vacancies"),
+    "T_rent": latest_files.get("T_rent"),
+    "Beg Year": latest_files.get("Beg Year"),
+    "Sameday": latest_files.get("Sameday")
 }
 # 🔹 2. Load DataFrames
 dfs = {}
@@ -104,86 +110,227 @@ with tab1:
     col3.metric(label="💵 Total Rent Collected % ", value=f"{(total_rent)/(market_total_rent)*100:,.2f}%")
     col4.metric(label="🚪Total Move-outs (Next 60 days)", value=f"{total_move_out}")
 
-    col5, col6 = st.columns(2)
-
-    # Use col2 and col5 for two separate charts
-    with col6:
-        df_filtered = dfs["Tenant Data"].dropna(subset=["Tenant", "Late Count"]).copy()
-
-        # **Convert "Late Count" to numeric**
-        df_filtered["Late Count"] = pd.to_numeric(df_filtered["Late Count"], errors="coerce")
-        df_filtered = df_filtered[df_filtered["Late Count"] > 2]
-        df_filtered = df_filtered.sort_values(by="Late Count", ascending=False)
-
-        # **Create Bar Chart**
-        fig1 = px.bar(df_filtered, x="Tenant", y="Late Count", 
-                    title="📊 Late Payment Frequency by Tenant",
-                    labels={"Late Count": "Late Payment Count", "Tenant": "Tenant Name"},
-                    color="Late Count",
-                    text_auto=True,
-                    color_continuous_scale="Blues")
-        fig1.update_layout(
-        height=600, width=1000,  # Bigger figure
-        margin=dict(l=50, r=50, t=50, b=150)  # Adjust margins
-    )
-
-# 🔹 Rotate x-axis labels
-        fig1.update_xaxes(tickangle=-45) 
-        st.plotly_chart(fig1, use_container_width=True)
+    col5 = st.columns(1)[0] 
+    
 
     with col5:
 
-        # Load dataset
         tenant_df = dfs["Tenant Data"]  # Ensure the correct dataset key
-
-        # Ensure "Rent" column is numeric
         tenant_df["Rent"] = pd.to_numeric(tenant_df["Rent"], errors="coerce")
-
-        # Total units per BD/BA
         total_units = tenant_df.groupby("BD/BA").size()
-
-        # Occupied units: Count only those with status "Current" or "Notice-Unrented"
-        occupied_units = tenant_df[tenant_df["Status"].isin(["Current", "Notice-Unrented"])].groupby("BD/BA").size()
-
-        # Create summary table
+        occupied_units = tenant_df[tenant_df["Status"].isin(["Current", "Notice-Unrented", "Notice-Rented"])].groupby("BD/BA").size()
         bd_ba_summary = pd.DataFrame({
             "Total_Rent": tenant_df.groupby("BD/BA")["Rent"].sum(),
             "Total_Units": total_units,
             "Occupied_Units": occupied_units
         }).fillna(0)  # Fill NaN for BD/BA groups without occupied units
 
-        # Calculate occupancy rate per BD/BA
         bd_ba_summary["Occupancy_Rate"] = (bd_ba_summary["Occupied_Units"] / bd_ba_summary["Total_Units"]) * 100
         bd_ba_summary["Occupancy_Rate"] = bd_ba_summary["Occupancy_Rate"].round(2).astype(str) + "%"
 
-        # 🔹 **Calculate Total Row**
+
         total_rent = bd_ba_summary["Total_Rent"].sum()
         total_units_all = bd_ba_summary["Total_Units"].sum()
         occupied_units_all = bd_ba_summary["Occupied_Units"].sum()
 
-        # 🔹 **Calculate Overall Occupancy Rate**
         overall_occupancy_rate = (occupied_units_all / total_units_all) * 100 if total_units_all > 0 else 0
         overall_occupancy_rate = f"{round(overall_occupancy_rate, 2)}%"
+        bd_ba_summary["Total_Rent"] = bd_ba_summary["Total_Rent"].apply(lambda x: f"${x:,.2f}")
 
         # 🔹 **Append "Total" Row**
         total_row = pd.DataFrame([{
             "BD/BA": "Total",
-            "Total_Rent": total_rent,
+            "Total_Rent": f"${total_rent:,.2f}",
             "Occupancy_Rate": overall_occupancy_rate
         }])
 
-        # Remove "Total_Units" & "Occupied_Units" before display
         bd_ba_summary = bd_ba_summary.drop(columns=["Total_Units", "Occupied_Units"])
-
-        # Reset index for display
         bd_ba_summary = bd_ba_summary.reset_index()
-
-        # Append total row
         bd_ba_summary = pd.concat([bd_ba_summary, total_row], ignore_index=True)
 
-        # Display the table in Streamlit
-        st.write("### 🏠 Total Rent & Occupancy Rate by BD/BA")
-        st.dataframe(bd_ba_summary, use_container_width=True)
+        three_month_df = dfs["T_rent"]  # Ensure the correct dataset key
+
+        # 1. Clean the Rent column (remove $ and ,)
+        three_month_df["Rent"] = (
+            three_month_df["Rent"]
+            .astype(str)
+            .str.replace(r"[$,]", "", regex=True)
+            .str.strip()
+        )
+
+        # 2. Then convert to numeric
+        three_month_df["Rent"] = pd.to_numeric(three_month_df["Rent"], errors="coerce")
+
+        # ✅ Print to confirm
+        three_month_total_units = three_month_df.groupby("BD/BA").size()
+        three_month_occupied_units = three_month_df[three_month_df["Status"].isin(["Current", "Notice-Unrented", "Notice-Rented"])].groupby("BD/BA").size()
+        three_month_bd_ba_summary = pd.DataFrame({
+            "Total_Rent": three_month_df.groupby("BD/BA")["Rent"].sum(),
+            "Total_Units": three_month_total_units,
+            "Occupied_Units": three_month_occupied_units
+        }).fillna(0)  # Fill NaN for BD/BA groups without occupied units
+
+        three_month_bd_ba_summary["Occupancy_Rate"] = (three_month_bd_ba_summary["Occupied_Units"] / three_month_bd_ba_summary["Total_Units"]) * 100
+        three_month_bd_ba_summary["Occupancy_Rate"] = three_month_bd_ba_summary["Occupancy_Rate"].round(2).astype(str) + "%"
+
+        three_month_total_rent = three_month_bd_ba_summary["Total_Rent"].sum()
+        three_month_total_units_all = three_month_bd_ba_summary["Total_Units"].sum()
+        three_month_occupied_units_all = three_month_bd_ba_summary["Occupied_Units"].sum()
+
+        three_month_overall_occupancy_rate = (three_month_occupied_units_all / three_month_total_units_all) * 100 if three_month_total_units_all > 0 else 0
+        three_month_overall_occupancy_rate = f"{round(three_month_overall_occupancy_rate, 2)}%"
+        three_month_bd_ba_summary["Total_Rent"] = three_month_bd_ba_summary["Total_Rent"].apply(lambda x: f"${x:,.2f}")
+
+        # 🔹 **Append "Total" Row**
+        three_month_total_row = pd.DataFrame([{
+            "BD/BA": "Total",
+            "Total_Rent": f"${three_month_total_rent:,.2f}",
+            "Occupancy_Rate": three_month_overall_occupancy_rate
+        }])
+
+        three_month_bd_ba_summary = three_month_bd_ba_summary.drop(columns=["Total_Units", "Occupied_Units"])
+        three_month_bd_ba_summary = three_month_bd_ba_summary.reset_index()
+        three_month_bd_ba_summary = pd.concat([three_month_bd_ba_summary, three_month_total_row], ignore_index=True)
+
+        beg_year_df = dfs["Beg Year"]  # Ensure the correct dataset key
+
+        # 1. Clean the Rent column (remove $ and ,)
+        beg_year_df["Rent"] = (
+            beg_year_df["Rent"]
+            .astype(str)
+            .str.replace(r"[$,]", "", regex=True)
+            .str.strip()
+        )
+
+        # 2. Then convert to numeric
+        beg_year_df["Rent"] = pd.to_numeric(beg_year_df["Rent"], errors="coerce")
+
+        # ✅ Print to confirm
+        beg_year_total_units = beg_year_df.groupby("BD/BA").size()
+        beg_year_occupied_units = beg_year_df[beg_year_df["Status"].isin(["Current", "Notice-Unrented", "Notice-Rented"])].groupby("BD/BA").size()
+        beg_year_bd_ba_summary = pd.DataFrame({
+            "Total_Rent": beg_year_df.groupby("BD/BA")["Rent"].sum(),
+            "Total_Units": beg_year_total_units,
+            "Occupied_Units": beg_year_occupied_units
+        }).fillna(0)  # Fill NaN for BD/BA groups without occupied units
+
+        beg_year_bd_ba_summary["Occupancy_Rate"] = (beg_year_bd_ba_summary["Occupied_Units"] / beg_year_bd_ba_summary["Total_Units"]) * 100
+        beg_year_bd_ba_summary["Occupancy_Rate"] = beg_year_bd_ba_summary["Occupancy_Rate"].round(2).astype(str) + "%"
+
+
+        beg_year_total_rent = beg_year_bd_ba_summary["Total_Rent"].sum()
+        beg_year_total_units_all = beg_year_bd_ba_summary["Total_Units"].sum()
+        beg_year_occupied_units_all = beg_year_bd_ba_summary["Occupied_Units"].sum()
+
+        beg_year_overall_occupancy_rate = (beg_year_occupied_units_all / beg_year_total_units_all) * 100 if beg_year_total_units_all > 0 else 0
+        beg_year_overall_occupancy_rate = f"{round(beg_year_overall_occupancy_rate, 2)}%"
+        beg_year_bd_ba_summary["Total_Rent"] = beg_year_bd_ba_summary["Total_Rent"].apply(lambda x: f"${x:,.2f}")
+
+        # 🔹 **Append "Total" Row**
+        beg_year_total_row = pd.DataFrame([{
+            "BD/BA": "Total",
+            "Total_Rent": f"${beg_year_total_rent:,.2f}",
+            "Occupancy_Rate": beg_year_overall_occupancy_rate
+        }])
+
+        beg_year_bd_ba_summary = beg_year_bd_ba_summary.drop(columns=["Total_Units", "Occupied_Units"])
+        beg_year_bd_ba_summary = beg_year_bd_ba_summary.reset_index()
+        beg_year_bd_ba_summary = pd.concat([beg_year_bd_ba_summary, beg_year_total_row], ignore_index=True)
+
+        same_day_df = dfs["Sameday"]  # Ensure the correct dataset key
+
+        # 1. Clean the Rent column (remove $ and ,)
+        same_day_df["Rent"] = (
+            same_day_df["Rent"]
+            .astype(str)
+            .str.replace(r"[$,]", "", regex=True)
+            .str.strip()
+        )
+
+        # 2. Then convert to numeric
+        same_day_df["Rent"] = pd.to_numeric(same_day_df["Rent"], errors="coerce")
+
+        # ✅ Print to confirm
+        same_day_total_units = same_day_df.groupby("BD/BA").size()
+        same_day_occupied_units = same_day_df[same_day_df["Status"].isin(["Current", "Notice-Unrented", "Notice-Rented"])].groupby("BD/BA").size()
+        same_day_bd_ba_summary = pd.DataFrame({
+            "Total_Rent": same_day_df.groupby("BD/BA")["Rent"].sum(),
+            "Total_Units": same_day_total_units,
+            "Occupied_Units": same_day_occupied_units
+        }).fillna(0)  # Fill NaN for BD/BA groups without occupied units
+
+        same_day_bd_ba_summary["Occupancy_Rate"] = (same_day_bd_ba_summary["Occupied_Units"] / same_day_bd_ba_summary["Total_Units"]) * 100
+        same_day_bd_ba_summary["Occupancy_Rate"] = same_day_bd_ba_summary["Occupancy_Rate"].round(2).astype(str) + "%"
+
+
+        same_day_total_rent = same_day_bd_ba_summary["Total_Rent"].sum()
+        same_day_total_units_all = same_day_bd_ba_summary["Total_Units"].sum()
+        same_day_occupied_units_all = same_day_bd_ba_summary["Occupied_Units"].sum()
+
+        same_day_overall_occupancy_rate = (same_day_occupied_units_all / same_day_total_units_all) * 100 if same_day_total_units_all > 0 else 0
+        same_day_overall_occupancy_rate = f"{round(same_day_overall_occupancy_rate, 2)}%"
+        same_day_bd_ba_summary["Total_Rent"] = same_day_bd_ba_summary["Total_Rent"].apply(lambda x: f"${x:,.2f}")
+
+        # 🔹 **Append "Total" Row**
+        same_day_total_row = pd.DataFrame([{
+            "BD/BA": "Total",
+            "Total_Rent": f"${same_day_total_rent:,.2f}",
+            "Occupancy_Rate": same_day_overall_occupancy_rate
+        }])
+
+        same_day_bd_ba_summary = same_day_bd_ba_summary.drop(columns=["Total_Units", "Occupied_Units"])
+        same_day_bd_ba_summary = same_day_bd_ba_summary.reset_index()
+        same_day_bd_ba_summary = pd.concat([same_day_bd_ba_summary, same_day_total_row], ignore_index=True)
+
+            # Rename columns before merging
+        bd_ba_summary = bd_ba_summary.rename(columns={
+            "Total_Rent": "Current Total_Rent",
+            "Occupancy_Rate": "Current Occupancy_Rate"
+        })
+
+        three_month_bd_ba_summary = three_month_bd_ba_summary.rename(columns={
+            "Total_Rent": "3Mo Ago Total_Rent",
+            "Occupancy_Rate": "3Mo Ago Occupancy_Rate"
+        })
+        beg_year_bd_ba_summary = beg_year_bd_ba_summary.rename(columns={
+            "Total_Rent": "Beginning of Year Total_Rent",
+            "Occupancy_Rate": "Beginning of Year Occupancy_Rate"
+        })
+        same_day_bd_ba_summary = same_day_bd_ba_summary.rename(columns={
+            "Total_Rent": "Same Day of Last Year Total_Rent",
+            "Occupancy_Rate": "Same Day of Last Year Occupancy_Rate"
+        })
+
+
+        # Merge on "BD/BA"
+        combined_summary = pd.merge(
+            bd_ba_summary,
+            three_month_bd_ba_summary,
+            on="BD/BA",
+            how="outer"
+        )
+
+        # Then merge with beginning of year summary
+        combined_summary = pd.merge(
+            combined_summary,
+            beg_year_bd_ba_summary,
+            on="BD/BA",
+            how="outer"
+        )
+
+        combined_summary = pd.merge(
+            combined_summary,
+            same_day_bd_ba_summary,
+            on="BD/BA",
+            how="outer"
+        )
+
+        # Optional: Fill missing with "-"
+        combined_summary = combined_summary.fillna("-")
+
+        # Display in Streamlit
+        st.write("### 📊 Comparison: Current vs 3-Month-Ago Rent & Occupancy")
+        st.dataframe(combined_summary, use_container_width=True)
 
             
     col7, col8 = st.columns(2)
@@ -304,6 +451,33 @@ with tab1:
  
         else:
             st.warning("⚠️ 'Status' column not found in dataset.")
+
+    col9 = st.columns(1)[0] 
+
+    # Use col2 and col5 for two separate charts
+    with col9:
+        df_filtered = dfs["Tenant Data"].dropna(subset=["Tenant", "Late Count"]).copy()
+
+        # **Convert "Late Count" to numeric**
+        df_filtered["Late Count"] = pd.to_numeric(df_filtered["Late Count"], errors="coerce")
+        df_filtered = df_filtered[df_filtered["Late Count"] > 2]
+        df_filtered = df_filtered.sort_values(by="Late Count", ascending=False)
+
+        # **Create Bar Chart**
+        fig1 = px.bar(df_filtered, x="Tenant", y="Late Count", 
+                    title="📊 Late Payment Frequency by Tenant",
+                    labels={"Late Count": "Late Payment Count", "Tenant": "Tenant Name"},
+                    color="Late Count",
+                    text_auto=True,
+                    color_continuous_scale="Blues")
+        fig1.update_layout(
+        height=600, width=1000,  # Bigger figure
+        margin=dict(l=50, r=50, t=50, b=150)  # Adjust margins
+    )
+
+# 🔹 Rotate x-axis labels
+        fig1.update_xaxes(tickangle=-45) 
+        st.plotly_chart(fig1, use_container_width=True)
 
 with tab2:
     col21, col22, col23, col24 = st.columns(4)
@@ -623,7 +797,7 @@ with tab3:
         rent_ready_df = dfs["Vacancies"]
 
         # Ensure date columns are in datetime format
-        rent_ready_df["Available On"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
+        rent_ready_df["Last Move Out"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
         rent_ready_df["Next Move In"] = pd.to_datetime(rent_ready_df["Next Move In"], errors="coerce")
 
         # Extract month-year in Period (M) format

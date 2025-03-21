@@ -107,7 +107,7 @@ with tab1:
     # Display the metric card
     col1.metric(label="🏠Total Unit", value=f"{all_units}")
     col2.metric(label="📊 Occupancy Rate", value=f"{occupied:.2f}%")
-    col3.metric(label="💵 Total Rent Collected % ", value=f"{(total_rent)/(market_total_rent)*100:,.2f}%")
+    col3.metric(label="💵 Total Rent ", value=f"${(total_rent):,.0f}")
     col4.metric(label="🚪Total Move-outs (Next 60 days)", value=f"{total_move_out}")
 
     col5 = st.columns(1)[0] 
@@ -627,63 +627,41 @@ with tab3:
     col36, col37 = st.columns(2)
 
     with col36:
-        df = dfs["Vacancies"]  # Ensure you're using the correct dataset key
+       
+        status_counts = dfs["Vacancies"]["Unit Status"].value_counts().reset_index()
+        status_counts.columns = ["Unit Status", "Count"]
 
-        # **Convert Dates to Datetime**
-        df["Last Move In"] = pd.to_datetime(df["Last Move In"], errors="coerce")
-        df["Last Move Out"] = pd.to_datetime(df["Last Move Out"], errors="coerce")
-
-        # **Extract Month-Year for Grouping**
-        df["Move In Month"] = df["Last Move In"].dt.to_period("M")
-        df["Move Out Month"] = df["Last Move Out"].dt.to_period("M")
-
-        # **Count Move-Ins and Move-Outs per Month**
-        move_in_counts = df["Move In Month"].value_counts().sort_index()
-        move_out_counts = df["Move Out Month"].value_counts().sort_index()
-
-        # **Create DataFrame for Plotting**
-        move_trends = pd.DataFrame({"Move In": move_in_counts, "Move Out": move_out_counts}).fillna(0)
-        move_trends.index = move_trends.index.to_timestamp()  # Convert Period to Timestamp
-
-        # **Create Line Chart**
-       # **Create Improved Line Chart**
-        fig7 = px.line(move_trends, 
-                    x=move_trends.index, 
-                    y=["Move In", "Move Out"],
-                    markers=True,
-                    title="📈 Move-In and Move-Out Trends by Month",
-                    labels={"value": "Number of Vacancies", "index": "Month"},
-                    line_shape="spline",  # Smooth curves
-                    color_discrete_sequence=["#1f77b4", "#ff7f0e"])  # Custom colors (Blue & Orange)
+            # **Create Pie Chart**
+        fig9 = px.pie(status_counts, 
+              values="Count", 
+              names="Unit Status", 
+              title="🏠 Unit Status Distribution", 
+              hole=0.4,  # Creates a donut-style pie chart
+              color_discrete_sequence=px.colors.qualitative.Set3)  # Custom colors
 
         # 🔹 Improve Layout & Style
-        fig7.update_layout(
-            width=1000, height=600,  # Bigger figure size
-            margin=dict(l=50, r=50, t=50, b=100),  # Adjust margins
+        fig9.update_layout(
+            width=800, height=600,  # Bigger chart
+            margin=dict(l=50, r=50, t=50, b=50)  # Adjust margins
+        )
+
+        # 🔹 Customize Legend
+        fig9.update_layout(
             legend=dict(
-                x=0.5, y=-0.2,  # Center legend below the chart
-                orientation="h",
-                xanchor="center",
-                font=dict(size=14)
+                font=dict(size=14),  # Bigger font for legend
+                x=1, y=0.9,  # Position legend to the right
+                xanchor="right"
             )
         )
 
-        # 🔹 Customize X-Axis
-        fig7.update_xaxes(
-            title_text="Month",
-            tickangle=-45,  # Rotate x-axis labels
-            showgrid=True,  # Show gridlines
-            gridcolor="lightgray"
+        # 🔹 Show Percentages & Labels
+        fig9.update_traces(
+            textinfo="percent+label",  # Display both labels and percentages
+            pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))]  # Slightly pull out the first slice
         )
 
-        # 🔹 Customize Y-Axis
-        fig7.update_yaxes(
-            title_text="Number of Vacancies",
-            showgrid=True,
-            gridcolor="lightgray"
-        )
+        st.plotly_chart(fig9, use_container_width=True)
 
-        st.plotly_chart(fig7, use_container_width=True)
 
     with col37:
        
@@ -757,89 +735,109 @@ with tab3:
     # Use col2 and col5 for two separate charts
         
     with col38:
+
+        df3 = dfs["Vacancies"]  # Ensure you're using the correct dataset key
+
+        # Drop rows missing key info
+        df3 = df3.dropna(subset=["Bed/Bath", "Unit Status"])
      
-        status_counts = dfs["Vacancies"]["Unit Status"].value_counts().reset_index()
-        status_counts.columns = ["Unit Status", "Count"]
+        # Group by unit type and status
+        status_counts = df3.groupby(["Bed/Bath", "Unit Status"]).size().unstack(fill_value=0)
+        status_counts = status_counts.reset_index()
 
-            # **Create Pie Chart**
-        fig9 = px.pie(status_counts, 
-              values="Count", 
-              names="Unit Status", 
-              title="🏠 Unit Status Distribution", 
-              hole=0.4,  # Creates a donut-style pie chart
-              color_discrete_sequence=px.colors.qualitative.Set3)  # Custom colors
-
-        # 🔹 Improve Layout & Style
-        fig9.update_layout(
-            width=800, height=600,  # Bigger chart
-            margin=dict(l=50, r=50, t=50, b=50)  # Adjust margins
+       # Create a stacked bar chart
+        fig7 = go.Figure()
+        custom_colors = {
+            "Vacant-Unrented": "#72c0a7",  # Deep orange
+            "Vacant-Rented": "#1E90FF",  # Blue
+            "Notice-Unrented": "#87CEFA"  # Light blue
+        }
+        # Loop through each status column to stack bars
+        for status in status_counts.columns[1:]:
+            fig7.add_trace(go.Bar(
+                x=status_counts["Bed/Bath"],
+                y=status_counts[status],
+                name=status,
+                marker=dict(color=custom_colors.get(status, "#CCCCCC")),  # Apply color here
+                text=status_counts[status],  # Add data labels
+            ))
+    
+        # Customize layout
+        fig7.update_layout(
+            barmode="stack",
+            title="🏘️ Unit Type Breakdown by Status",
+            xaxis_title="Unit Type (BD/BA)",
+            yaxis_title="Number of Units",
+            width=1000,
+            height=600,
+            legend_title="Unit Status",
+            margin=dict(l=40, r=40, t=60, b=40)
         )
 
-        # 🔹 Customize Legend
-        fig9.update_layout(
-            legend=dict(
-                font=dict(size=14),  # Bigger font for legend
-                x=1, y=0.9,  # Position legend to the right
-                xanchor="right"
-            )
-        )
-
-        # 🔹 Show Percentages & Labels
-        fig9.update_traces(
-            textinfo="percent+label",  # Display both labels and percentages
-            pull=[0.1 if i == 0 else 0 for i in range(len(status_counts))]  # Slightly pull out the first slice
-        )
-
-        st.plotly_chart(fig9, use_container_width=True)
-
+        # Show in Streamlit
+        st.plotly_chart(fig7, use_container_width=True)
+     
+       
     with col39:
-                # Load dataset
+                # Today's date
+        today = pd.Timestamp.today()
+
+        # 60 days from now
+        future_cutoff = today + pd.Timedelta(days=60)
         rent_ready_df = dfs["Vacancies"]
 
-        # Ensure date columns are in datetime format
-        rent_ready_df["Last Move Out"] = pd.to_datetime(rent_ready_df["Available On"], errors="coerce")
+            # Parse the relevant date columns
+        rent_ready_df["Last Move Out"] = pd.to_datetime(rent_ready_df["Last Move Out"], errors="coerce")
         rent_ready_df["Next Move In"] = pd.to_datetime(rent_ready_df["Next Move In"], errors="coerce")
 
-        # Extract month-year in Period (M) format
-        rent_ready_df["Available On Month"] = rent_ready_df["Available On"].dt.to_period("M")
-        rent_ready_df["Next Move In Month"] = rent_ready_df["Next Move In"].dt.to_period("M")
+        # Filter for the next 60 days
+        upcoming_move_outs = rent_ready_df[
+            (rent_ready_df["Last Move Out"].notna()) &
+            (rent_ready_df["Last Move Out"] >= today) &
+            (rent_ready_df["Last Move Out"] <= future_cutoff)
+        ]
 
-        # Count the number of units for each month
-        available_on_counts = rent_ready_df["Available On Month"].value_counts().sort_index()
-        next_move_in_counts = rent_ready_df["Next Move In Month"].value_counts().sort_index()
+        upcoming_move_ins = rent_ready_df[
+            (rent_ready_df["Next Move In"].notna()) &
+            (rent_ready_df["Next Move In"] >= today) &
+            (rent_ready_df["Next Move In"] <= future_cutoff)
+        ]
+
+        # Count per day
+        move_out_counts = upcoming_move_outs["Last Move Out"].dt.date.value_counts().sort_index()
+        move_in_counts = upcoming_move_ins["Next Move In"].dt.date.value_counts().sort_index()
 
         # Combine counts into a DataFrame
-        month_counts_df = pd.DataFrame({
-            "Available On": available_on_counts,
-            "Next Move In": next_move_in_counts
-        }).fillna(0)  # Fill NaN values with 0 for missing months
+        move_summary_df = pd.DataFrame({
+            "Last Move Out": move_out_counts,
+            "Next Move In": move_in_counts
+        }).fillna(0)
 
-        # Convert index (Period) to string for plotting
-        month_counts_df.index = month_counts_df.index.astype(str)
+        # Convert index to string for plotting
+        move_summary_df.index = move_summary_df.index.astype(str)
 
         # 🔹 **Plot the improved bar chart**
         fig10 = px.bar(
-            month_counts_df,
-            x=month_counts_df.index,  # Month labels on X-axis
-            y=["Available On", "Next Move In"],  # Values on Y-axis
-            title="📊 Available On and Next Move In by Month (Rent Ready Units)",
-            labels={"value": "Count of Units", "index": "Month"},
-            barmode="group",  # Side-by-side bars
-            text_auto=True,  # Show counts inside bars
-            color_discrete_sequence=["#636EFA", "#EF553B"]  # Custom colors (Blue & Red)
+            move_summary_df,
+            x=move_summary_df.index,
+            y=["Last Move Out", "Next Move In"],
+            title="📊 Upcoming Move-Outs and Move-Ins (Next 60 Days)",
+            labels={"value": "Count of Units", "index": "Date"},
+            barmode="group",
+            text_auto=True,
+            color_discrete_sequence=["#EF553B", "#636EFA"]  # Red & Blue
         )
 
-        # 🔹 **Improve Layout**
         fig10.update_layout(
-            xaxis=dict(title="Month", title_font=dict(size=14), tickfont=dict(size=12)),
-            yaxis=dict(title="Count of Units", title_font=dict(size=14), tickfont=dict(size=12), gridcolor="lightgray"),
-            width=1000, height=600,  # Bigger size
+            xaxis=dict(title="Date", tickangle=45),
+            yaxis=dict(title="Count of Units", gridcolor="lightgray"),
+            width=1000, height=600,
             margin=dict(l=50, r=50, t=50, b=50)
-        )
+                )
 
-        # Show the chart in Streamlit
+        # Display in Streamlit
         st.plotly_chart(fig10, use_container_width=True)
-        
+                
 
     with tab1:
         st.subheader("🏠 Tenant Data")

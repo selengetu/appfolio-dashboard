@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 
 # Set page layout
-st.set_page_config(page_title="Business Dashboards", layout="wide")
+st.set_page_config(page_title="Appfolio Dashboards", layout="wide")
 
 try:
     import kaleido  # Required for Plotly image export
